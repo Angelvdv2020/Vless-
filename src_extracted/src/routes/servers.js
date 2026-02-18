@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { remnawave } from '../remnawave.js';
+import { x3ui } from '../x3ui.js';
 import { logger } from '../logger.js';
 
 const router = Router();
@@ -12,7 +12,7 @@ const FLAG_MAP = {
 
 router.get('/', async (req, res) => {
   try {
-    const nodesData = await remnawave.getNodes();
+    const nodesData = await x3ui.getNodes();
     const nodes = nodesData?.response || [];
 
     const servers = nodes.map((node) => ({

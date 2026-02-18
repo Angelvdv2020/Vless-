@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
+    is_admin BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -13,50 +14,72 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS subscriptions (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    plan_type VARCHAR(50) NOT NULL, -- 'monthly', 'yearly', 'trial'
-    status VARCHAR(50) DEFAULT 'active', -- 'active', 'expired', 'cancelled'
+    plan_type VARCHAR(50) NOT NULL,
+    status VARCHAR(50) DEFAULT 'active',
+    x3ui_client_uuid VARCHAR(255),
+    x3ui_client_email VARCHAR(255),
+    x3ui_inbound_id INTEGER,
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- VPN Configurations table (stores RemnaWave subscription IDs)
+-- VPN keys table used by runtime routes
+CREATE TABLE IF NOT EXISTS vpn_keys (
+    id SERIAL PRIMARY KEY,
+    subscription_id INTEGER NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
+    x3ui_client_id VARCHAR(255),
+    x3ui_inbound_id INTEGER,
+    x3ui_inbound_tag VARCHAR(100),
+    country_code VARCHAR(10) DEFAULT 'auto',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(subscription_id)
+);
+
+-- Optional compatibility table
 CREATE TABLE IF NOT EXISTS vpn_configs (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     subscription_id INTEGER NOT NULL REFERENCES subscriptions(id) ON DELETE CASCADE,
-    remnawave_subscription_id VARCHAR(255) UNIQUE NOT NULL,
-    country_code VARCHAR(10) DEFAULT 'auto', -- 'us', 'uk', 'de', 'auto', etc.
+    x3ui_client_ref VARCHAR(255) UNIQUE NOT NULL,
+    country_code VARCHAR(10) DEFAULT 'auto',
     server_location VARCHAR(100),
-    config_type VARCHAR(50), -- 'shadowsocks', 'vmess', 'vless', etc.
+    config_type VARCHAR(50),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, subscription_id)
 );
 
--- Connection logs (optional, for analytics)
 CREATE TABLE IF NOT EXISTS connection_logs (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    platform VARCHAR(50), -- 'ios', 'android', 'windows', 'macos', 'linux'
-    connection_type VARCHAR(50), -- 'deep-link', 'file', 'qr-code'
+    platform VARCHAR(50),
+    connection_type VARCHAR(50),
     country_code VARCHAR(10),
     connected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Available countries (cache from RemnaWave)
 CREATE TABLE IF NOT EXISTS available_countries (
     id SERIAL PRIMARY KEY,
     country_code VARCHAR(10) UNIQUE NOT NULL,
     country_name VARCHAR(100) NOT NULL,
     flag_emoji VARCHAR(10),
     is_available BOOLEAN DEFAULT true,
-    priority INTEGER DEFAULT 0, -- Higher priority = show first
+    priority INTEGER DEFAULT 0,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert default countries
+CREATE TABLE IF NOT EXISTS site_content (
+    id SERIAL PRIMARY KEY,
+    section_key VARCHAR(100) UNIQUE NOT NULL,
+    title VARCHAR(255) DEFAULT '',
+    body TEXT DEFAULT '',
+    image_url TEXT DEFAULT '',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 INSERT INTO available_countries (country_code, country_name, flag_emoji, priority) VALUES
     ('auto', 'Auto (Best)', '🌍', 100),
     ('us', 'United States', '🇺🇸', 90),
@@ -68,9 +91,12 @@ INSERT INTO available_countries (country_code, country_name, flag_emoji, priorit
     ('ca', 'Canada', '🇨🇦', 30)
 ON CONFLICT (country_code) DO NOTHING;
 
--- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_users_is_admin ON users(is_admin);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_x3ui_email ON subscriptions(x3ui_client_email);
+CREATE INDEX IF NOT EXISTS idx_vpn_keys_subscription_id ON vpn_keys(subscription_id);
 CREATE INDEX IF NOT EXISTS idx_vpn_configs_user_id ON vpn_configs(user_id);
-CREATE INDEX IF NOT EXISTS idx_vpn_configs_remnawave_id ON vpn_configs(remnawave_subscription_id);
+CREATE INDEX IF NOT EXISTS idx_vpn_configs_x3ui_client_ref ON vpn_configs(x3ui_client_ref);
 CREATE INDEX IF NOT EXISTS idx_connection_logs_user_id ON connection_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_site_content_section_key ON site_content(section_key);

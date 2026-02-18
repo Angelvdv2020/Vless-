@@ -1,544 +1,379 @@
-# Noryx Premium VPN - Инструкция по установке (3X-UI)
+# Noryx Premium VPN (3X-UI only)
 
-Полная инструкция от чистого сервера до работающей VPN-системы. Написано простым языком для начинающих.
+Этот репозиторий теперь использует **только 3X-UI + Node.js API + PostgreSQL**.
+Упоминания и сценарии legacy-провайдера удалены из рабочего контура.
 
----
+## 1) Архитектура и совместимость
 
-## Что мы будем устанавливать
+| Компонент | Версия | С чем совместим |
+|---|---|---|
+| Ubuntu / Debian | Ubuntu 22.04+ / Debian 12+ | Node.js 20, PostgreSQL 15, Nginx |
+| Node.js | 20.x | Приложение API (`src/server.js`) |
+| PostgreSQL | 15+ | Схема из `src/database/schema.sql` |
+| 3X-UI | актуальный stable | Интеграция через `src/services/x3ui.js` |
+| Nginx | 1.22+ | Reverse proxy для API и статики |
 
-Система состоит из двух частей:
+## 2) Пошаговая установка
 
-```
-1. 3X-UI Panel (порт 2053)
-   Панель управления VPN на базе Xray-core.
-   Управление клиентами, трафиком, статистикой.
-
-2. Noryx сайт + API (порт 3000)
-   Ваш сайт: регистрация, оплата, личный кабинет.
-   API: связывает сайт с 3X-UI.
-   БД: Supabase (облачная PostgreSQL).
-```
-
-Схема работы:
-
-```
-Пользователь
-    |
-    v
-[Сайт Noryx] --- регистрация, оплата --->  [3X-UI API]
-    |                                            |
-    v                                            v
-[Личный кабинет] <--- VPN конфиг -------  [3X-UI Panel]
-    |                                            |
-    v                                            v
-[VPN-приложение] <--- подключение --------- [Xray Server]
-    |
-    v
-  Интернет (зашифровано)
-```
-
----
-
-## Требования к серверам
-
-Для 3X-UI + Noryx (один VPS):
-
-```
-ОС:     Ubuntu 22.04 / Debian 12 (рекомендуется)
-RAM:    2 GB минимум, 4 GB рекомендуется
-CPU:    2 ядра минимум
-Диск:   20 GB
-Домен:  нужен (например vpn.noryx.com для 3X-UI)
-```
-
----
-
-# ЭТАП 1: Установка 3X-UI Panel
-
----
-
-## 1.1 Установка Docker
-
-Подключитесь к серверу по SSH и выполните:
+### Шаг 1. Подготовка сервера
 
 ```bash
-sudo curl -fsSL https://get.docker.com | sh
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install -y curl git nano ufw nginx
 ```
 
-Проверьте:
+Открыть порты:
 
 ```bash
-docker --version
-docker compose version
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+sudo ufw status
 ```
 
-Обе команды должны вывести версию.
+### Шаг 2. Установка Node.js 20
 
----
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+node -v
+npm -v
+```
 
-## 1.2 Установка 3X-UI
+### Шаг 3. Установка PostgreSQL
 
-Выполните одну команду:
+```bash
+sudo apt-get install -y postgresql postgresql-contrib
+sudo systemctl enable postgresql
+sudo systemctl start postgresql
+```
+
+Создать БД и пользователя:
+
+```bash
+sudo -u postgres psql
+CREATE DATABASE noryx_vpn;
+CREATE USER noryx_admin WITH ENCRYPTED PASSWORD 'CHANGE_ME_STRONG_PASSWORD';
+GRANT ALL PRIVILEGES ON DATABASE noryx_vpn TO noryx_admin;
+\q
+```
+
+### Шаг 4. Установка и настройка 3X-UI
 
 ```bash
 bash <(curl -L https://raw.githubusercontent.com/mhsanaei/3x-ui/main/install.sh)
 ```
 
-Следуйте инструкциям установщика. По умолчанию:
-- Порт: `2053`
-- Веб-интерфейс доступен по `https://ваш-ip:2053`
-- Логин: `admin`
-- Пароль: `admin` (обязательно измените после первого входа)
+В панели 3X-UI:
+1. Создайте inbound (например VLESS).
+2. Запомните ID inbound.
+3. Проверьте, что API панели доступен с сервера приложения.
 
----
-
-## 1.3 Первый вход в 3X-UI
-
-Откройте в браузере `https://ваш-ip:2053` (игнорируйте предупреждение о SSL).
-
-Введите:
-- Логин: `admin`
-- Пароль: `admin`
-
-После входа измените пароль: нажмите на иконку профиля -> Settings -> измените пароль.
-
----
-
-## 1.4 Настройка Reverse Proxy (Caddy для HTTPS)
-
-Если вы хотите получить нормальный HTTPS через свой домен:
-
-```bash
-sudo apt-get update
-sudo apt-get install -y caddy
-```
-
-Отредактируйте конфиг Caddy:
-
-```bash
-sudo nano /etc/caddy/Caddyfile
-```
-
-Содержимое:
-
-```
-vpn.noryx.com {
-    reverse_proxy * 127.0.0.1:2053
-}
-```
-
-Замените `vpn.noryx.com` на ваш домен.
-
-Запустите Caddy:
-
-```bash
-sudo systemctl restart caddy
-```
-
-Теперь 3X-UI доступна по `https://vpn.noryx.com` с автоматическим HTTPS.
-
----
-
-## 1.5 Настройка 3X-UI
-
-### Создайте первый Inbound (точку входа)
-
-1. Откройте 3X-UI: `https://vpn.noryx.com` (или `https://ip:2053`)
-2. Перейдите в **Inbound list**
-3. Нажмите **Add inbound**
-4. Выберите протокол: `VLESS` или `VMESS` (рекомендуется `VLESS`)
-5. Заполните:
-   - Port: `443` (или любой другой открытый порт)
-   - Address: введите IP вашего сервера или домен
-   - SNI: укажите SNI (например `vless.noryx.com`)
-6. Сохраните
-
-### Получите информацию об Inbound
-
-Нужны параметры для API:
-- Inbound ID (видно в списке)
-- Tag (название inbound, например `vless`)
-
-Эти данные будут использоваться в приложении Noryx для создания конфигов.
-
----
-
-# ЭТАП 2: Сайт Noryx и API
-
-Сайт работает на Node.js с Supabase (облачная БД).
-
----
-
-## 2.1 Установка Node.js
-
-```bash
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-```
-
-Проверка:
-
-```bash
-node --version
-npm --version
-```
-
----
-
-## 2.2 Скачайте проект Noryx
+### Шаг 5. Развертывание приложения
 
 ```bash
 cd /opt
-git clone <url-вашего-репозитория> noryx-vpn
+git clone https://github.com/Angelvdv2020/Vless-.git noryx-vpn
 cd noryx-vpn
-```
-
-Или если проект в архиве -- распакуйте и перейдите в папку.
-
----
-
-## 2.3 Установите зависимости
-
-```bash
 npm install
 ```
 
----
-
-## 2.4 Настройте .env файл
-
-```bash
-cp .env.example .env
-nano .env
-```
-
-Заполните Supabase данные:
+Создайте `.env`:
 
 ```env
-# Supabase
-VITE_SUPABASE_URL=https://ваш-проект.supabase.co
-VITE_SUPABASE_ANON_KEY=ваш_anon_key
-
-# 3X-UI API
-X3UI_API_URL=https://vpn.noryx.com:2053
-X3UI_USERNAME=admin
-X3UI_PASSWORD=ваш_пароль_от_3xui
-
-# Server
 PORT=3000
 NODE_ENV=production
 
-# Другие настройки
-HMAC_SECRET=сгенерируйте_openssl_rand_-hex_32
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=noryx_vpn
+DB_USER=noryx_admin
+DB_PASSWORD=CHANGE_ME_STRONG_PASSWORD
+
+JWT_SECRET=CHANGE_ME_LONG_RANDOM
+ADMIN_PASSWORD=CHANGE_ME_ADMIN_PASSWORD
+HMAC_SECRET=CHANGE_ME_HMAC_SECRET
 TOKEN_EXPIRY_SECONDS=300
-JWT_SECRET=сгенерируйте_openssl_rand_-hex_32
+
+X3UI_API_URL=https://YOUR_3XUI_HOST:2053
+X3UI_USERNAME=admin
+X3UI_PASSWORD=CHANGE_ME_3XUI_PASSWORD
+
+ALLOWED_ORIGINS=https://YOUR_DOMAIN
+
+# AI builder (optional)
+OPENAI_API_KEY=
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_TEXT_MODEL=gpt-4o-mini
+OPENAI_IMAGE_MODEL=gpt-image-1
 ```
 
-Как получить Supabase данные:
-
-1. Создайте проект на [supabase.com](https://supabase.com)
-2. Перейдите в **Settings** -> **API**
-3. Скопируйте `Project URL` и `anon key`
-
-Генерируйте секреты:
-
-```bash
-openssl rand -hex 32
-```
-
----
-
-## 2.5 Инициализируйте БД
+Инициализируйте БД и проверьте синтаксис:
 
 ```bash
 npm run init-db
+npm run build
 ```
 
-Это создаст нужные таблицы в Supabase автоматически.
-
----
-
-## 2.6 Запустите сервер
-
-Разово:
+### Шаг 6. Запуск
 
 ```bash
 npm start
 ```
 
-В продакшене через pm2:
+Проверка:
 
 ```bash
-npm install -g pm2
-pm2 start src/server.js --name noryx
-pm2 save
-pm2 startup
+curl -s http://127.0.0.1:3000/health
 ```
+
+Ожидаемый ответ: `{"status":"ok",...}`.
 
 ---
 
-## 2.7 Проверьте работу
+## 3) Команды управления
+
+### Приложение
 
 ```bash
-curl http://localhost:3000/health
+npm start              # запуск
+npm run dev            # запуск с nodemon
+npm run build          # проверка синтаксиса
+npm run init-db        # инициализация схемы
 ```
 
-Должна вернуть: `{"status":"ok","service":"Noryx Premium VPN"}`
+### systemd (рекомендуется для production)
 
----
+Создайте сервис `/etc/systemd/system/noryx-vpn.service`:
 
-## 2.8 Веб-страницы сайта
+```ini
+[Unit]
+Description=Noryx VPN API
+After=network.target
 
-Все страницы находятся в `/public`:
+[Service]
+Type=simple
+WorkingDirectory=/opt/noryx-vpn
+ExecStart=/usr/bin/node /opt/noryx-vpn/src/server.js
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
 
-```
-index.html       - Главная
-login.html       - Вход
-register.html    - Регистрация
-cabinet.html     - Личный кабинет
-tariffs.html     - Тарифы
-servers.html     - Серверы
-apps.html        - Приложения
-news.html        - Новости
-support.html     - Поддержка
-referral.html    - Реферальная программа
-```
-
-Файлы можно редактировать прямо в `/public`. При перезагрузке браузера изменения появятся.
-
----
-
-## 2.9 Админ-панель
-
-Адрес: `http://localhost:3000/admin.html`
-
-Возможности:
-- Статистика (пользователи, подписки, платформы)
-- Управление пользователями
-- Управление подписками
-- Управление странами (активные/неактивные)
-- Логи подключений
-- 3X-UI интеграция (создание/удаление VPN, статистика)
-
----
-
-## 2.10 API-эндпоинты
-
-### VPN эндпоинты
-
-```
-POST /api/vpn/connect         - подключение (авто-определение платформы)
-GET  /api/vpn/countries        - список доступных стран
-POST /api/vpn/change-country   - сменить страну подключения
-GET  /api/vpn/stats            - статистика трафика пользователя
+[Install]
+WantedBy=multi-user.target
 ```
 
-### Админ эндпоинты (3X-UI интеграция)
-
-```
-POST /api/admin/x3ui/create-vpn           - создать VPN для пользователя
-POST /api/admin/x3ui/revoke-vpn           - отозвать VPN доступ
-GET  /api/admin/x3ui/user-stats/:userId   - статистика пользователя
-GET  /api/admin/x3ui/all-users-status     - статус всех пользователей
-POST /api/admin/x3ui/reset-traffic        - сбросить лимит трафика
-GET  /api/admin/x3ui/inbounds-info        - информация об Inbound
-POST /api/admin/x3ui/sync-database        - синхронизация БД с 3X-UI
-POST /api/admin/x3ui/cleanup-expired      - удаление истекших клиентов
-```
-
----
-
-## 2.11 Структура проекта
-
-```
-noryx-vpn/
-  src/
-    server.js                 - Главный файл сервера (Express)
-    database/
-      db.js                   - Подключение к Supabase
-      schema.sql              - Схема таблиц
-    routes/
-      vpn.js                  - VPN маршруты (3X-UI интеграция)
-      admin.js                - Админ маршруты
-      admin-x3ui.js           - 3X-UI управление
-    middleware/
-      auth.js                 - Авторизация пользователей
-      adminAuth.js            - Авторизация админов
-      x3ui-session.js         - 3X-UI сеанс
-    services/
-      x3ui.js                 - API сервис для 3X-UI
-      x3ui-config.js          - Генерация VPN конфигов
-      admin-x3ui.js           - Админ сервис для 3X-UI
-      platformDetector.js     - Определение платформы (iOS/Android/Desktop)
-      tokenService.js         - HMAC токены
-      qrService.js            - QR коды
-  public/
-    index.html                - Главная страница
-    admin.html                - Админ-панель
-    pages/                    - Остальные страницы
-    assets/                   - CSS, JS, картинки
-  .env.example                - Шаблон настроек
-  package.json                - Зависимости
-```
-
----
-
-# ЭТАП 3: Важные настройки и обслуживание
-
----
-
-## 3.1 Безопасность
-
-1. **Измените пароль 3X-UI после установки**
-
-   В 3X-UI: Settings -> замените пароль
-
-2. **Файрвол:**
-
-   ```bash
-   sudo ufw allow 22
-   sudo ufw allow 80
-   sudo ufw allow 443
-   sudo ufw allow 2053
-   sudo ufw enable
-   ```
-
-3. **Порты приложения (3000) НЕ открывайте наружу** -- используйте reverse proxy (Caddy/Nginx)
-
-4. **Обновляйте систему:**
-
-   ```bash
-   sudo apt-get update
-   sudo apt-get upgrade
-   sudo apt-get install --only-upgrade docker
-   ```
-
----
-
-## 3.2 Резервное копирование
-
-Supabase автоматически делает резервные копии.
-
-Если нужна ручная копия:
+Команды:
 
 ```bash
-# Экспорт таблиц из Supabase (через веб-интерфейс или CLI)
-# или используйте pgdump если у вас локальная БД
+sudo systemctl daemon-reload
+sudo systemctl enable noryx-vpn
+sudo systemctl start noryx-vpn
+sudo systemctl status noryx-vpn
+journalctl -u noryx-vpn -f
+```
 
-# Копия .env файлов
-cp /opt/noryx-vpn/.env /opt/backups/noryx_env_$(date +%Y%m%d)
+### Nginx reverse proxy
+
+Пример `/etc/nginx/sites-available/noryx-vpn`:
+
+```nginx
+server {
+    listen 80;
+    server_name YOUR_DOMAIN;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Применить:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/noryx-vpn /etc/nginx/sites-enabled/noryx-vpn
+sudo nginx -t
+sudo systemctl reload nginx
 ```
 
 ---
 
-## 3.3 Мониторинг и логи
+## 4) Частые ошибки и решения
 
+### Ошибка: `3X-UI login failed`
+**Причина:** неверные `X3UI_USERNAME/X3UI_PASSWORD` или недоступен `X3UI_API_URL`.
+
+**Проверка:**
 ```bash
-# Статус сервера Noryx
-pm2 status
-
-# Логи Noryx
-pm2 logs noryx
-
-# Логи 3X-UI
-sudo systemctl status x-ui
-journalctl -u x-ui -f -n 100
-
-# Занятые порты
-ss -tlnp
-
-# Статус Caddy (reverse proxy)
-sudo systemctl status caddy
+curl -k -I https://YOUR_3XUI_HOST:2053
 ```
+
+**Решение:** проверьте логин/пароль в `.env`, сетевую доступность и SSL.
+
+### Ошибка: `No inbounds configured in 3X-UI`
+**Причина:** в панели не создан inbound.
+
+**Решение:** создайте inbound в 3X-UI и повторите запрос `/api/vpn/connect`.
+
+### Ошибка БД: `password authentication failed`
+**Причина:** неверные DB-параметры.
+
+**Проверка:**
+```bash
+psql -h 127.0.0.1 -U noryx_admin -d noryx_vpn -c "SELECT 1;"
+```
+
+### Ошибка CORS: `Not allowed by CORS`
+**Причина:** домен фронта не добавлен в `ALLOWED_ORIGINS`.
+
+**Решение:** добавьте точный origin (без лишних слешей), перезапустите сервис.
 
 ---
 
-## 3.4 Обновление
+## 5) Минимальная проверка сочетания компонентов
+
+1. API поднимается: `/health` отвечает `ok`.
+2. БД инициализируется: `npm run init-db` без ошибок.
+3. 3X-UI доступен, логин успешен.
+4. `/api/vpn/countries` возвращает список стран.
+5. `/api/vpn/connect` создает/использует клиента в 3X-UI.
+
+Если любой из пунктов падает — смотрите раздел «Частые ошибки и решения».
+
+---
+
+## 6) Что реализовано сейчас (по факту)
+
+Ниже честная сверка с вашим ожидаемым сценарием.
+
+### Ожидание: «полноценный сайт -> вход -> разный ЛК user/admin -> удалённое управление 3X-UI -> умная кнопка -> конструктор сайта»
+
+### Факт в текущем рантайме
+
+1. **Рабочий frontend в рантайме:**
+   - сервер раздаёт статику только из папки `public/`;
+   - там реально используются `public/index.html` и `public/admin.html`.
+
+2. **User-flow:**
+   - на `public/index.html` есть smart connect-кнопка и выбор страны;
+   - endpoint для подключения: `POST /api/vpn/connect`.
+
+3. **Admin-flow:**
+   - `public/admin.html` — отдельная админ-панель с логином по паролю;
+   - backend-логин админа: `POST /api/admin/auth/login`;
+   - есть разделы управления пользователями/подписками/странами/логами и отдельные 3X-UI admin endpoints.
+
+4. **3X-UI удалённое управление:**
+   - реализовано через `src/services/x3ui.js` и `src/routes/admin-x3ui.js`.
+
+5. **Что НЕ доведено до рабочего состояния в текущем runtime:**
+   - полноценный пользовательский кабинет с register/login/cabinet из `web_extracted/web/pages/*` не подключён к текущему Express runtime;
+   - «конструктор управления сайтом» как отдельный рабочий модуль/раздел в активном backend/frontend отсутствует.
+
+Итого: **ядро VPN + админка + 3X-UI управление есть**, а **полный продуктовый web-кабинет и конструктор** сейчас лежат в виде заготовок/отдельного extracted-набора, но не в активном контуре запуска.
+
+---
+
+## 7) Как пользоваться проектом прямо сейчас
+
+### 7.1 Запуск
 
 ```bash
-# 3X-UI (проверяет обновления автоматически)
-# Обновляется через веб-интерфейс 3X-UI
-
-# Noryx приложение
-cd /opt/noryx-vpn
-git pull
 npm install
-pm2 restart noryx
+npm run init-db
+npm start
 ```
 
----
+### 7.2 Куда заходить
 
-## 3.5 Частые ошибки и решения
+- Пользовательский экран (smart connect): `http://HOST:3000/`
+- Админ-панель: `http://HOST:3000/admin.html`
 
-| Ошибка | Причина | Решение |
-|--------|---------|---------|
-| Cannot connect to Supabase | Неверные данные БД | Проверьте `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY` в .env |
-| 3X-UI API не отвечает | 3X-UI не запущена или неверный адрес | Проверьте `X3UI_API_URL` и включена ли 3X-UI (`systemctl status x-ui`) |
-| Port 3000 already in use | Порт занят | `lsof -i :3000` и либо killить процесс, либо изменить PORT в .env |
-| Reverse proxy не работает | Caddy не запущен | `sudo systemctl status caddy` и `sudo systemctl restart caddy` |
-| Пользователь не может подключиться к VPN | 3X-UI клиент не создан или истёк трафик | Проверьте в админ-панели: `/api/admin/x3ui/all-users-status` |
-| Сертификат SSL не работает | Caddy не получил сертификат | Проверьте домен и DNS: `sudo systemctl status caddy` |
+### 7.3 Как войти в админку
 
----
+1. В `.env` задать:
+   - `ADMIN_PASSWORD`
+   - `JWT_SECRET`
+2. На странице `/admin.html` ввести `ADMIN_PASSWORD`.
+3. Панель получит JWT через `POST /api/admin/auth/login` и откроет секции управления.
 
-## 3.6 Сводная таблица портов
+### 7.4 Что может пользователь сейчас
 
-```
-Порт    Что                        Где открыт
-------  -------------------------  -------------------------
-80      HTTP (Caddy redirect)      Открыт (перенаправляет на 443)
-443     HTTPS (Caddy, 3X-UI, API)  Открыт
-2053    3X-UI Web (внутри)         Только 127.0.0.1 (через Caddy)
-3000    Noryx API (внутри)         Только 127.0.0.1 (через reverse proxy)
-```
+- Выбрать страну;
+- Нажать smart connect;
+- Получить deep link / файл / QR в зависимости от платформы.
 
----
+### 7.5 Что может админ сейчас
 
-## 3.7 Масштабирование на 3 VPS
-
-Если нужна отказоустойчивая архитектура на 3 серверах:
-
-- **VPS 1**: 3X-UI Panel (порт 2053) + Noryx API (порт 3000)
-- **VPS 2, 3, N**: Дополнительные Xray серверы (управляются из 3X-UI на VPS 1)
-
-В 3X-UI добавьте дополнительные Inbound на разных портах/IP для каждого сервера.
-
-Документация: см. `README_3_SERVERS.md`
+- Смотреть пользователей и подписки;
+- Продлевать/отменять подписки;
+- Управлять странами и смотреть логи;
+- Выполнять операции 3X-UI (create/revoke/reset/stats/sync/cleanup).
 
 ---
 
-## Финальная проверка
+## 8) Где лежит «плановая» (расширенная) веб-часть
 
-```
-[ ] Docker и Node.js установлены
-[ ] 3X-UI запущена и доступна
-[ ] Пароль 3X-UI изменён
-[ ] Supabase проект создан
-[ ] .env файл заполнен корректно
-[ ] Noryx приложение запущено
-[ ] /health эндпоинт отвечает
-[ ] Админ-панель доступна
-[ ] Caddy настроен и HTTPS работает
-[ ] Файрвол настроен
-```
+Файлы расширенного UI лежат в:
+- `web_extracted/web/pages/login.html`
+- `web_extracted/web/pages/register.html`
+- `web_extracted/web/pages/cabinet.html`
+- и другие страницы в `web_extracted/web/pages/`
 
-Все пункты отмечены -- система готова!
+Эти страницы **не подключены автоматически** к текущему `src/server.js` (он раздаёт `public/`).
 
----
+Если хотите, следующим шагом я могу сделать отдельный план миграции:
+1) подключить полноценный web-кабинет в runtime,
+2) сделать role-based routing user/admin,
+3) добавить/описать модуль «конструктор сайта» (если укажете, что именно должен конструировать: контент, тарифы, блоки лендинга, новости и т.д.).
 
-## Полезные ссылки
 
-- 3X-UI документация: https://github.com/mhsanaei/3x-ui
-- Supabase документация: https://supabase.com/docs
-- Xray-core (основа 3X-UI): https://xtls.github.io/
+## 9) Единый вход и роли (реализовано)
 
----
+Теперь рабочий контур такой:
 
-## Поддержка
+1. Пользователь заходит на `/login.html` или `/register.html`.
+2. После успешного входа backend отдает JWT-сессию с ролью (`user` или `admin`).
+3. Frontend делает redirect по роли:
+   - `admin` -> `/admin.html`
+   - `user` -> `/cabinet.html`
+4. Smart Connect на главной (`/`) работает только с JWT (demo `USER_ID=1` убран).
 
-Если возникли проблемы:
+API авторизации:
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/profile`
 
-1. Проверьте логи: `pm2 logs noryx`, `journalctl -u x-ui -f`
-2. Проверьте порты: `ss -tlnp`
-3. Проверьте .env: все ли переменные заполнены
-4. Перезагрузите сервис: `pm2 restart noryx`
+## 10) Конструктор сайта + AI (реализовано)
+
+Добавлен admin-only модуль конструктора:
+- Страница: `/builder.html`
+- API:
+  - `GET /api/admin/site-builder/content`
+  - `PUT /api/admin/site-builder/content/:key`
+  - `POST /api/admin/site-builder/ai/text`
+  - `POST /api/admin/site-builder/ai/image`
+
+Хранение контента:
+- Таблица `site_content` в БД.
+
+Важно:
+- Для AI-функций нужен `OPENAI_API_KEY`.
+- Без ключа конструктор сохранения контента работает, а AI-генерация вернет понятную ошибку конфигурации.
+
+## 11) Выровнена БД и runtime-код
+
+В `schema.sql` добавлены/выровнены структуры, которые реально использует runtime:
+- `users.is_admin`
+- `subscriptions.x3ui_client_uuid/x3ui_client_email/x3ui_inbound_id`
+- таблица `vpn_keys`
+- таблица `site_content`
+
+Это устраняет расхождения между SQL-схемой и маршрутами `vpn/admin`.

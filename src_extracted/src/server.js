@@ -24,8 +24,8 @@ if (!config.supabase.url || !config.supabase.anonKey) {
   logger.warn('⚠️  Supabase credentials not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY');
 }
 
-if (!config.remnawave.adminLogin && !config.remnawave.apiToken) {
-  logger.warn('⚠️  RemnaWave credentials not configured. Set REMNA_ADMIN_LOGIN/PASSWORD or REMNA_API_TOKEN');
+if (!config.x3ui.adminLogin && !config.x3ui.apiToken) {
+  logger.warn('⚠️  3X-UI credentials not configured. Set REMNA_ADMIN_LOGIN/PASSWORD or REMNA_API_TOKEN');
 }
 
 const app = express();
@@ -63,7 +63,7 @@ app.get('/health', (req, res) => {
     env: config.nodeEnv,
     services: {
       supabase: !!config.supabase.url && !!config.supabase.anonKey,
-      remnawave: !!config.remnawave.adminLogin || !!config.remnawave.apiToken,
+      x3ui: !!config.x3ui.adminLogin || !!config.x3ui.apiToken,
     },
   };
   res.json(health);
@@ -116,7 +116,7 @@ app.use((err, req, res, next) => {
 const server = app.listen(config.port, config.host, () => {
   const protocol = config.nodeEnv === 'production' ? 'https' : 'http';
   const supabaseStatus = config.supabase.url && config.supabase.anonKey ? '✓ Connected' : '✗ Not configured';
-  const remnaWaveStatus = config.remnawave.adminLogin || config.remnawave.apiToken ? '✓ Configured' : '✗ Not configured';
+  const remnaWaveStatus = config.x3ui.adminLogin || config.x3ui.apiToken ? '✓ Configured' : '✗ Not configured';
   const databaseStatus = config.database.user ? '✓ Connected' : '✗ Not configured';
 
   logger.success(`
@@ -127,7 +127,7 @@ const server = app.listen(config.port, config.host, () => {
 ║  Env:        ${config.nodeEnv.padEnd(45)}║
 ║  Database:   ${databaseStatus.padEnd(45)}║
 ║  Supabase:   ${supabaseStatus.padEnd(45)}║
-║  RemnaWave:  ${remnaWaveStatus.padEnd(45)}║
+║  3X-UI:  ${remnaWaveStatus.padEnd(45)}║
 ╚═══════════════════════════════════════════════════════╝
 Ready to accept connections...
   `);

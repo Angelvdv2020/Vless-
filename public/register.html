@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Register</title></head>
+<body style="font-family:Arial;max-width:420px;margin:40px auto">
+<h2>Регистрация</h2>
+<input id="email" placeholder="Email" style="width:100%;padding:10px;margin:6px 0">
+<input id="password" type="password" placeholder="Пароль" style="width:100%;padding:10px;margin:6px 0">
+<button id="btn" style="padding:10px 14px">Создать аккаунт</button>
+<div id="msg"></div>
+<p><a href="/login.html">Уже есть аккаунт?</a></p>
+<script>
+btn.onclick = async () => {
+  const res = await fetch('/api/auth/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:email.value,password:password.value})});
+  const data = await res.json();
+  if(!res.ok){ msg.textContent = data.error || 'Ошибка'; return; }
+  localStorage.setItem('vpn_session', JSON.stringify(data.session));
+  location.href='/cabinet.html';
+}
+</script></body></html>

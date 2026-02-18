@@ -3,11 +3,11 @@ import https from 'https';
 import { logger } from './logger.js';
 import { config } from './config.js';
 
-const REMNA_API_BASE = config.remnawave.baseUrl;
-const REMNA_API_TOKEN = config.remnawave.apiToken;
-const REMNA_AUTH_MODE = config.remnawave.authMode;
-const REMNA_LOGIN = config.remnawave.adminLogin;
-const REMNA_PASSWORD = config.remnawave.adminPassword;
+const REMNA_API_BASE = config.x3ui.baseUrl;
+const REMNA_API_TOKEN = config.x3ui.apiToken;
+const REMNA_AUTH_MODE = config.x3ui.authMode;
+const REMNA_LOGIN = config.x3ui.adminLogin;
+const REMNA_PASSWORD = config.x3ui.adminPassword;
 
 const httpsAgent = new https.Agent({
   rejectUnauthorized: process.env.NODE_ENV === 'production'
@@ -39,11 +39,11 @@ async function loginToPanel() {
     const cookies = res.headers['set-cookie'];
     if (cookies) {
       sessionCookie = cookies.map(c => c.split(';')[0]).join('; ');
-      logger.info('RemnaWave session established');
+      logger.info('3X-UI session established');
     }
   } catch (err) {
-    logger.error('RemnaWave login failed:', err.message);
-    throw new Error('RemnaWave authentication failed');
+    logger.error('3X-UI login failed:', err.message);
+    throw new Error('3X-UI authentication failed');
   }
 }
 
@@ -75,12 +75,12 @@ async function apiRequest(method, path, data = null) {
       });
       return res.data;
     }
-    logger.error(`RemnaWave API error [${method} ${path}]:`, err.message);
+    logger.error(`3X-UI API error [${method} ${path}]:`, err.message);
     throw err;
   }
 }
 
-export const remnawave = {
+export const x3ui = {
   async getNodes() {
     return apiRequest('GET', '/api/nodes');
   },
@@ -129,7 +129,7 @@ export const remnawave = {
   },
 
   async getSubscriptionUrl(shortUuid) {
-    const publicUrl = config.remnawave.apiBaseUrl || REMNA_API_BASE;
+    const publicUrl = config.x3ui.apiBaseUrl || REMNA_API_BASE;
     return `${publicUrl}api/sub/${shortUuid}`;
   },
 

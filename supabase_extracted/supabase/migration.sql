@@ -161,8 +161,8 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   starts_at timestamptz DEFAULT now(),
   expires_at timestamptz NOT NULL,
   auto_renew boolean DEFAULT false,
-  remnawave_user_uuid text DEFAULT '',
-  remnawave_username text DEFAULT '',
+  x3ui_user_uuid text DEFAULT '',
+  x3ui_username text DEFAULT '',
   subscription_url text DEFAULT '',
   created_at timestamptz DEFAULT now()
 );
@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS vpn_keys (
   subscription_id uuid REFERENCES subscriptions(id),
   key_name text DEFAULT 'Default',
   access_url text DEFAULT '',
-  remnawave_key_id text DEFAULT '',
+  x3ui_key_id text DEFAULT '',
   is_active boolean DEFAULT true,
   created_at timestamptz DEFAULT now()
 );

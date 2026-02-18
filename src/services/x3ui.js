@@ -52,19 +52,36 @@ class X3UIService {
     }
   }
 
-  async createClient(userEmail, countryCode = 'auto') {
+  async createClient(inboundId, userEmail, clientId = null) {
     try {
       await this.ensureSession();
 
+      if (!inboundId) {
+        throw new Error('inboundId is required to create 3X-UI client');
+      }
+
+      if (!userEmail) {
+        throw new Error('userEmail is required to create 3X-UI client');
+      }
+
+      const resolvedClientId = clientId || this.generateUUID();
+
       const response = await this.client.post('/api/inbounds/addClient', {
-        id: this.generateUUID(),
-        alterId: 0,
-        email: userEmail,
-        limitIp: 0,
-        limitDown: 0,
-        limitUp: 0,
-        totalGB: 0,
-        expiryTime: 0,
+        id: inboundId,
+        settings: JSON.stringify({
+          clients: [{
+            id: resolvedClientId,
+            email: userEmail,
+            enable: true,
+            flow: '',
+            limitIp: 0,
+            totalGB: 0,
+            expiryTime: 0,
+            tgId: '',
+            subId: '',
+            reset: 0,
+          }],
+        }),
       });
 
       if (!response.data.success) {
@@ -72,8 +89,9 @@ class X3UIService {
       }
 
       return {
-        clientId: response.data.obj.id,
+        clientId: resolvedClientId,
         clientEmail: userEmail,
+        inboundId,
         createdAt: new Date(),
       };
     } catch (error) {
@@ -93,7 +111,8 @@ class X3UIService {
       }
 
       const inbound = response.data.obj;
-      const clients = JSON.parse(inbound.clientStats || '[]');
+      const inboundSettings = JSON.parse(inbound.settings || '{}');
+      const clients = Array.isArray(inboundSettings.clients) ? inboundSettings.clients : [];
       const client = clients.find(c => c.email === clientId);
 
       if (!client) {

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { supabase, requireAuth } from '../supabase.js';
-import { remnawave } from '../remnawave.js';
+import { x3ui } from '../x3ui.js';
 import { logger } from '../logger.js';
 
 const router = Router();
@@ -25,9 +25,9 @@ router.get('/', requireAuth, async (req, res) => {
 
     const enriched = await Promise.all(
       (subs || []).map(async (sub) => {
-        if (sub.remnawave_username) {
+        if (sub.x3ui_username) {
           try {
-            const rData = await remnawave.getUser(sub.remnawave_username);
+            const rData = await x3ui.getUser(sub.x3ui_username);
             if (rData?.response) {
               const u = rData.response;
               sub.traffic_used_gb = Number(((u.usedTrafficBytes || 0) / 1073741824).toFixed(2));
@@ -39,7 +39,7 @@ router.get('/', requireAuth, async (req, res) => {
               sub.remna_status = u.status;
             }
           } catch (e) {
-            logger.error(`Failed to fetch remnawave user ${sub.remnawave_username}:`, e.message);
+            logger.error(`Failed to fetch x3ui user ${sub.x3ui_username}:`, e.message);
           }
         }
         return sub;
@@ -110,14 +110,14 @@ router.post('/purchase', requireAuth, async (req, res) => {
 
     let remnaUser;
     try {
-      remnaUser = await remnawave.createUser({
+      remnaUser = await x3ui.createUser({
         username,
         trafficLimitBytes: trafficBytes,
         expireAt: expiresAt.toISOString(),
         deviceLimit: tariff.max_devices,
       });
     } catch (e) {
-      logger.error('Remnawave create user failed:', e.message);
+      logger.error('3X-UI create user failed:', e.message);
       return res.status(500).json({ error: 'Ошибка создания VPN-подключения' });
     }
 
@@ -130,8 +130,8 @@ router.post('/purchase', requireAuth, async (req, res) => {
       .insert({
         user_id: req.user.id,
         tariff_id: tariff.id,
-        remnawave_username: remnaUsername,
-        remnawave_user_uuid: remnaUuid,
+        x3ui_username: remnaUsername,
+        x3ui_user_uuid: remnaUuid,
         subscription_url: subUrl,
         status: tariff.is_trial ? 'trial' : 'active',
         starts_at: new Date().toISOString(),
@@ -207,19 +207,19 @@ router.post('/:id/renew', requireAuth, async (req, res) => {
     const newExpires = new Date(baseDate);
     newExpires.setDate(newExpires.getDate() + durationDays);
 
-    if (sub.remnawave_username) {
+    if (sub.x3ui_username) {
       try {
-        const rUser = await remnawave.getUser(sub.remnawave_username);
+        const rUser = await x3ui.getUser(sub.x3ui_username);
         if (rUser?.response?.uuid) {
-          await remnawave.extendUser(rUser.response.uuid, {
+          await x3ui.extendUser(rUser.response.uuid, {
             expireAt: newExpires.toISOString(),
           });
           if (sub.status !== 'active') {
-            await remnawave.enableUser(rUser.response.uuid);
+            await x3ui.enableUser(rUser.response.uuid);
           }
         }
       } catch (e) {
-        logger.error('Remnawave extend failed:', e.message);
+        logger.error('3X-UI extend failed:', e.message);
       }
     }
 
@@ -264,14 +264,14 @@ router.delete('/:id', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Подписка не найдена' });
     }
 
-    if (sub.remnawave_username) {
+    if (sub.x3ui_username) {
       try {
-        const rUser = await remnawave.getUser(sub.remnawave_username);
+        const rUser = await x3ui.getUser(sub.x3ui_username);
         if (rUser?.response?.uuid) {
-          await remnawave.disableUser(rUser.response.uuid);
+          await x3ui.disableUser(rUser.response.uuid);
         }
       } catch (e) {
-        logger.error('Remnawave disable failed:', e.message);
+        logger.error('3X-UI disable failed:', e.message);
       }
     }
 
