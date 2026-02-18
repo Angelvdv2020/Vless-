@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Новости - NoryxVPN</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">NoryxVPN</a>
+      <button class="mobile-menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')">&#9776;</button>
+      <nav>
+        <ul>
+          <li><a href="/">Главная</a></li>
+          <li><a href="/tariffs">Тарифы</a></li>
+          <li><a href="/servers">Серверы</a></li>
+          <li><a href="/apps">Приложения</a></li>
+          <li><a href="/support">Поддержка</a></li>
+          <li data-auth="guest"><a href="/login" class="btn btn-primary btn-sm">Войти</a></li>
+          <li data-auth="user" style="display:none"><a href="/cabinet" class="btn btn-primary btn-sm">Кабинет</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" style="padding:3rem 2rem 2.5rem;">
+    <div class="hero-content">
+      <h1>Новости</h1>
+      <p>Последние обновления и события NoryxVPN</p>
+    </div>
+  </section>
+
+  <div class="container" style="max-width:800px;">
+    <div id="newsList">
+      <div class="loading-spinner"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section"><h4>NoryxVPN</h4><p style="color:var(--text-muted);">Быстрый и надежный VPN.</p></div>
+      <div class="footer-section"><h4>Продукт</h4><ul><li><a href="/tariffs">Тарифы</a></li><li><a href="/servers">Серверы</a></li><li><a href="/apps">Приложения</a></li></ul></div>
+      <div class="footer-section"><h4>Контакты</h4><ul><li><a href="https://t.me/NoryxWebBot" target="_blank">Telegram бот</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>NoryxVPN. Все права защищены.</p></div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    async function loadNews() {
+      const container = document.getElementById('newsList');
+      try {
+        const articles = await API.get('/api/news');
+        if (!articles || articles.length === 0) {
+          container.innerHTML = '<div class="empty-state"><h3>Пока нет новостей</h3><p>Следите за обновлениями</p></div>';
+          return;
+        }
+        container.innerHTML = articles.map(article => {
+          const date = formatDate(article.published_at || article.created_at);
+          return '<div class="news-card">' +
+            '<div class="news-date">' + date + '</div>' +
+            '<h3>' + escapeHtml(article.title) + '</h3>' +
+            '<p>' + escapeHtml(article.content || article.excerpt || '') + '</p>' +
+          '</div>';
+        }).join('');
+      } catch (err) {
+        container.innerHTML = '<div class="empty-state"><h3>Не удалось загрузить новости</h3><p>Попробуйте позже</p></div>';
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    document.addEventListener('DOMContentLoaded', loadNews);
+  </script>
+</body>
+</html>

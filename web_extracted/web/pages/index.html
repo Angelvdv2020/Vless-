@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoryxVPN - Невидимость. Безопасность. Свобода.</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">NoryxVPN</a>
+      <button class="mobile-menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')">&#9776;</button>
+      <nav>
+        <ul>
+          <li><a href="/" class="active">Главная</a></li>
+          <li><a href="/tariffs">Тарифы</a></li>
+          <li><a href="/servers">Серверы</a></li>
+          <li><a href="/apps">Приложения</a></li>
+          <li><a href="/news">Новости</a></li>
+          <li><a href="/support">Поддержка</a></li>
+          <li data-auth="guest"><a href="/login" class="btn btn-primary btn-sm">Войти</a></li>
+          <li data-auth="user" style="display:none"><a href="/cabinet" class="btn btn-primary btn-sm">Кабинет</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1 style="font-size: 3.5rem; background: linear-gradient(135deg, #00F2FF 0%, #0AC8D9 50%, #00F2FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.1;">Стань невидим в интернете</h1>
+      <p style="font-size: 1.25rem; max-width: 600px;">Премиальный VPN для полного контроля над приватностью. Технологичный обхода, молниеносная скорость, абсолютная защита.</p>
+      <div class="hero-actions">
+        <a href="/tariffs" class="btn btn-primary btn-lg">Начать сейчас</a>
+        <a href="/apps" class="btn btn-secondary btn-lg">Как подключиться</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number">50+</div>
+        <div class="stat-label">Сверхбыстрых серверов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">30+</div>
+        <div class="stat-label">Стран и регионов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">99.9%</div>
+        <div class="stat-label">Гарантированный Uptime</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">Техническая поддержка</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:5rem;">
+      <h2>Технологии будущего</h2>
+      <p>Продвинутые протоколы и шифрование нового поколения</p>
+    </div>
+
+    <div class="bento-grid">
+      <div class="bento-item">
+        <div class="bento-item-icon">⚡</div>
+        <h3>VLESS Protocol</h3>
+        <p>Ультралёгкий протокол нового поколения с минимальной задержкой и максимальной пропускной способностью.</p>
+      </div>
+      <div class="bento-item">
+        <div class="bento-item-icon">🔐</div>
+        <h3>AES-256 шифрование</h3>
+        <p>Военный уровень защиты данных. Абсолютно неуязвим к взлому и перехвату трафика.</p>
+      </div>
+      <div class="bento-item">
+        <div class="bento-item-icon">🌐</div>
+        <h3>gRPC режим</h3>
+        <p>Скрытое соединение для обхода DPI-фильтров. Невидим даже для провайдеров и государственных фильтров.</p>
+      </div>
+      <div class="bento-item">
+        <div class="bento-item-icon">⚙️</div>
+        <h3>XHTTP транспорт</h3>
+        <p>Инновационный способ маскировки VPN-трафика под обычный HTTP. Идеален для самых строгих ограничений.</p>
+      </div>
+      <div class="bento-item bento-item-lg">
+        <div class="bento-item-icon">🛡️</div>
+        <h3>Полная конфиденциальность</h3>
+        <p>Нулевое логирование трафика. Даже мы не можем видеть, что вы делаете в интернете. Ваша приватность — наш приоритет.</p>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:5rem;">
+      <h2>Почему миллионы выбирают нас</h2>
+      <p>Сочетание надёжности, скорости и инноваций</p>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon" style="background: rgba(0, 242, 255, 0.15); color: var(--primary);">⚡</div>
+        <h3>Молниеносная скорость</h3>
+        <p>Оптимизированная сетевая архитектура обеспечивает стабильную высокую скорость без падений.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background: rgba(0, 230, 118, 0.15); color: #00E676;">🔒</div>
+        <h3>Максимальная защита</h3>
+        <p>Шифрование нового поколения защищает ваши данные от любых угроз в интернете.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background: rgba(10, 200, 217, 0.15); color: #0AC8D9;">🌍</div>
+        <h3>Глобальная сеть</h3>
+        <p>Серверы на всех континентах. Свободный доступ к контенту из любой точки мира.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background: rgba(255, 171, 0, 0.15); color: #FFAB00;">📱</div>
+        <h3>Все платформы</h3>
+        <p>Windows, macOS, iOS, Android. Защищайте все свои устройства одновременно.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background: rgba(255, 23, 68, 0.15); color: #FF1744;">⏱️</div>
+        <h3>Пробный период</h3>
+        <p>3 дня полного доступа без обязательств. Убедитесь сами в качестве.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon" style="background: rgba(0, 230, 118, 0.15); color: #00E676;">💰</div>
+        <h3>Реферальные бонусы</h3>
+        <p>Приглашайте друзей и получайте денежные награды на счёт.</p>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:5rem;">
+      <h2>Три шага к свободе</h2>
+      <p>Подключитесь за 60 секунд</p>
+    </div>
+
+    <div class="cards-grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr));">
+      <div class="card" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto 1rem;background:rgba(0,242,255,0.15);color:var(--primary);">1</div>
+        <h4>Зарегистрируйтесь</h4>
+        <p>Создайте аккаунт за 30 секунд. Email и пароль — всё, что нужно.</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto 1rem;background:rgba(0,200,217,0.15);color:#0AC8D9;">2</div>
+        <h4>Получите ключ доступа</h4>
+        <p>Скопируйте ссылку подписки из личного кабинета одним кликом.</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto 1rem;background:rgba(0,230,118,0.15);color:#00E676;">3</div>
+        <h4>Подключайтесь</h4>
+        <p>Вставьте ссылку в VPN-клиент и наслаждайтесь свободой.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>NoryxVPN</h4>
+        <p style="color:var(--text-muted);">Премиальный VPN для тех, кому дорога свобода.</p>
+      </div>
+      <div class="footer-section">
+        <h4>Продукт</h4>
+        <ul>
+          <li><a href="/tariffs">Тарифы</a></li>
+          <li><a href="/servers">Серверы</a></li>
+          <li><a href="/apps">Приложения</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Поддержка</h4>
+        <ul>
+          <li><a href="/support">Центр поддержки</a></li>
+          <li><a href="/news">Новости</a></li>
+          <li><a href="/referral">Рефералка</a></li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h4>Контакты</h4>
+        <ul>
+          <li><a href="https://t.me/NoryxWebBot" target="_blank">Telegram бот</a></li>
+          <li><a href="mailto:support@servervpn.store">Email</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom"><p>NoryxVPN. Все права защищены.</p></div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

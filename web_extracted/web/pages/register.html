@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация - NoryxVPN</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">NoryxVPN</a>
+      <nav><ul><li><a href="/">Главная</a></li><li><a href="/tariffs">Тарифы</a></li><li><a href="/apps">Приложения</a></li></ul></nav>
+    </div>
+  </header>
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <h2>Регистрация</h2>
+      <p class="auth-subtitle">Создайте аккаунт для доступа к VPN</p>
+      <form id="registerForm">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="regEmail" placeholder="your@email.com" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Имя пользователя</label>
+          <input type="text" class="form-input" id="regUsername" placeholder="Ваше имя" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Пароль</label>
+          <input type="password" class="form-input" id="regPassword" placeholder="Минимум 6 символов" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Повторите пароль</label>
+          <input type="password" class="form-input" id="regPassword2" placeholder="Повторите пароль" required minlength="6">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Реферальный код (необязательно)</label>
+          <input type="text" class="form-input" id="regReferral" placeholder="Код друга">
+        </div>
+        <div id="regError" style="color:var(--danger);font-size:0.85rem;margin-bottom:1rem;display:none;"></div>
+        <button type="submit" class="btn btn-primary btn-block" id="regBtn">Зарегистрироваться</button>
+      </form>
+      <div class="auth-divider">Есть аккаунт? <a href="/login">Войти</a></div>
+    </div>
+  </div>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get('ref');
+      if (ref) document.getElementById('regReferral').value = ref;
+    })();
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('regBtn');
+      const errEl = document.getElementById('regError');
+      errEl.style.display = 'none';
+
+      const password = document.getElementById('regPassword').value;
+      const password2 = document.getElementById('regPassword2').value;
+      if (password !== password2) {
+        errEl.textContent = 'Пароли не совпадают';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Регистрация...';
+      try {
+        await Auth.register(
+          document.getElementById('regEmail').value,
+          password,
+          document.getElementById('regUsername').value,
+          document.getElementById('regReferral').value
+        );
+        window.location.href = '/cabinet';
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Зарегистрироваться';
+      }
+    });
+  </script>
+</body>
+</html>

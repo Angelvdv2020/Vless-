@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Поддержка - NoryxVPN</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">NoryxVPN</a>
+      <button class="mobile-menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')">&#9776;</button>
+      <nav>
+        <ul>
+          <li><a href="/">Главная</a></li>
+          <li><a href="/tariffs">Тарифы</a></li>
+          <li><a href="/servers">Серверы</a></li>
+          <li><a href="/apps">Приложения</a></li>
+          <li><a href="/support" class="active">Поддержка</a></li>
+          <li data-auth="guest"><a href="/login" class="btn btn-primary btn-sm">Войти</a></li>
+          <li data-auth="user" style="display:none"><a href="/cabinet" class="btn btn-primary btn-sm">Кабинет</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" style="padding:3rem 2rem 2.5rem;">
+    <div class="hero-content">
+      <h1>Поддержка</h1>
+      <p>Мы поможем решить любой вопрос</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="cards-grid" style="margin-bottom:3rem;">
+      <div class="card" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(14,165,233,0.1);font-size:1.5rem;">&#128172;</div>
+        <h3>Telegram бот</h3>
+        <p>Быстрые ответы 24/7</p>
+        <a href="https://t.me/NoryxWebBot" target="_blank" class="btn btn-primary" style="margin-top:1rem;">Написать</a>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(16,185,129,0.1);font-size:1.5rem;">&#128214;</div>
+        <h3>Инструкции</h3>
+        <p>Подробные гайды по настройке</p>
+        <a href="/apps" class="btn btn-secondary" style="margin-top:1rem;">Перейти</a>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(245,158,11,0.1);font-size:1.5rem;">&#9881;</div>
+        <h3>Личный кабинет</h3>
+        <p>Управление подписками</p>
+        <a href="/cabinet" class="btn btn-secondary" style="margin-top:1rem;">Открыть</a>
+      </div>
+    </div>
+
+    <div style="max-width:750px;margin:0 auto;">
+      <h2 style="text-align:center;margin-bottom:2rem;">Частые вопросы</h2>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">Как начать пользоваться VPN?</div>
+        <div class="faq-answer"><p>Зарегистрируйтесь на сайте, выберите тариф или активируйте пробный период, затем скачайте приложение для вашего устройства. В личном кабинете скопируйте ссылку подписки и вставьте её в приложение.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">Какие устройства поддерживаются?</div>
+        <div class="faq-answer"><p>Мы поддерживаем iOS, Android, Windows, macOS и Linux. Также возможно подключение через роутеры с поддержкой Xray (OpenWrt, Keenetic и др.). Все приложения доступны на странице <a href="/apps">Приложения</a>.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">Что такое VLESS-подписка?</div>
+        <div class="faq-answer"><p>VLESS - это современный протокол для VPN-подключений. Подписка - это ссылка, которая автоматически настраивает все серверы в вашем приложении. При добавлении новых серверов они появляются автоматически.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">Сколько устройств можно подключить?</div>
+        <div class="faq-answer"><p>Количество устройств зависит от выбранного тарифа. Подробности указаны на странице <a href="/tariffs">Тарифы</a>. Все устройства работают с одной подпиской.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">Как работает пробный период?</div>
+        <div class="faq-answer"><p>После регистрации вы можете активировать пробный период бесплатно. Это позволит протестировать сервис в течение ограниченного времени. Пробный период доступен один раз для каждого аккаунта.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">Как продлить подписку?</div>
+        <div class="faq-answer"><p>Перейдите в личный кабинет, найдите активную подписку и нажмите "Продлить". Выберите тариф и оплатите. Подписка будет продлена без потери доступа.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">Как работает реферальная программа?</div>
+        <div class="faq-answer"><p>В личном кабинете на странице <a href="/referral">Рефералка</a> вы найдете вашу уникальную ссылку. Отправьте её друзьям - когда они зарегистрируются и оплатят подписку, вы получите бонус на баланс.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">VPN не подключается. Что делать?</div>
+        <div class="faq-answer"><p>Попробуйте: 1) Обновить подписку в приложении. 2) Выбрать другой сервер. 3) Перезапустить приложение. 4) Проверить, не истекла ли подписка. Если проблема не решается, напишите в <a href="https://t.me/NoryxWebBot" target="_blank">Telegram бот</a>.</p></div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-question" onclick="this.parentElement.classList.toggle('open')">Вы храните логи?</div>
+        <div class="faq-answer"><p>Нет, мы не ведем логов активности пользователей. Мы отслеживаем только объем трафика для подписок с лимитом, без информации о посещенных сайтах.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section"><h4>NoryxVPN</h4><p style="color:var(--text-muted);">Быстрый и надежный VPN.</p></div>
+      <div class="footer-section"><h4>Продукт</h4><ul><li><a href="/tariffs">Тарифы</a></li><li><a href="/servers">Серверы</a></li><li><a href="/apps">Приложения</a></li></ul></div>
+      <div class="footer-section"><h4>Контакты</h4><ul><li><a href="https://t.me/NoryxWebBot" target="_blank">Telegram бот</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>NoryxVPN. Все права защищены.</p></div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+</body>
+</html>

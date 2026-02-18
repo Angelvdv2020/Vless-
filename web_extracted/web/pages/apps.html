@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Приложения - NoryxVPN</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">NoryxVPN</a>
+      <button class="mobile-menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')">&#9776;</button>
+      <nav>
+        <ul>
+          <li><a href="/">Главная</a></li>
+          <li><a href="/tariffs">Тарифы</a></li>
+          <li><a href="/servers">Серверы</a></li>
+          <li><a href="/apps" class="active">Приложения</a></li>
+          <li><a href="/support">Поддержка</a></li>
+          <li data-auth="guest"><a href="/login" class="btn btn-primary btn-sm">Войти</a></li>
+          <li data-auth="user" style="display:none"><a href="/cabinet" class="btn btn-primary btn-sm">Кабинет</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" style="padding:3rem 2rem 2.5rem;">
+    <div class="hero-content">
+      <h1>Приложения и инструкции</h1>
+      <p>Скачайте VPN-клиент для вашего устройства</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="tab-nav" style="justify-content:center;">
+      <button class="tab-btn active" onclick="showPlatform(this,'all')">Все</button>
+      <button class="tab-btn" onclick="showPlatform(this,'ios')">iOS</button>
+      <button class="tab-btn" onclick="showPlatform(this,'android')">Android</button>
+      <button class="tab-btn" onclick="showPlatform(this,'windows')">Windows</button>
+      <button class="tab-btn" onclick="showPlatform(this,'macos')">macOS</button>
+      <button class="tab-btn" onclick="showPlatform(this,'linux')">Linux</button>
+    </div>
+
+    <div class="cards-grid" id="appsGrid">
+      <div class="card" data-platform="ios" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(14,165,233,0.1);">&#128241;</div>
+        <h3>Happ (iOS)</h3>
+        <p>Рекомендуемый клиент для iPhone и iPad</p>
+        <a href="https://apps.apple.com/app/happ-proxy-utility/id6504287480" target="_blank" class="btn btn-primary" style="margin-top:1rem;">App Store</a>
+      </div>
+      <div class="card" data-platform="ios" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(14,165,233,0.1);">&#128241;</div>
+        <h3>V2Box (iOS)</h3>
+        <p>Альтернативный клиент для iOS</p>
+        <a href="https://apps.apple.com/app/v2box-v2ray-client/id6446814690" target="_blank" class="btn btn-secondary" style="margin-top:1rem;">App Store</a>
+      </div>
+      <div class="card" data-platform="android" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(16,185,129,0.1);">&#129302;</div>
+        <h3>V2RayTun (Android)</h3>
+        <p>Рекомендуемый клиент для Android</p>
+        <a href="https://play.google.com/store/apps/details?id=com.v2raytun.android" target="_blank" class="btn btn-primary" style="margin-top:1rem;">Google Play</a>
+      </div>
+      <div class="card" data-platform="android" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(16,185,129,0.1);">&#129302;</div>
+        <h3>Hiddify (Android)</h3>
+        <p>Альтернативный клиент для Android</p>
+        <a href="https://play.google.com/store/apps/details?id=app.hiddify.com" target="_blank" class="btn btn-secondary" style="margin-top:1rem;">Google Play</a>
+      </div>
+      <div class="card" data-platform="windows" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(14,165,233,0.1);">&#128187;</div>
+        <h3>Hiddify (Windows)</h3>
+        <p>Клиент для Windows 10/11</p>
+        <a href="https://github.com/hiddify/hiddify-app/releases" target="_blank" class="btn btn-primary" style="margin-top:1rem;">Скачать</a>
+      </div>
+      <div class="card" data-platform="macos" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(245,158,11,0.1);">&#127822;</div>
+        <h3>Hiddify (macOS)</h3>
+        <p>Клиент для macOS 11+</p>
+        <a href="https://github.com/hiddify/hiddify-app/releases" target="_blank" class="btn btn-primary" style="margin-top:1rem;">Скачать</a>
+      </div>
+      <div class="card" data-platform="linux" style="text-align:center;">
+        <div class="card-icon" style="margin:0 auto;background:rgba(245,158,11,0.1);">&#128039;</div>
+        <h3>Hiddify (Linux)</h3>
+        <p>Клиент для Ubuntu, Debian, Fedora</p>
+        <a href="https://github.com/hiddify/hiddify-app/releases" target="_blank" class="btn btn-primary" style="margin-top:1rem;">Скачать</a>
+      </div>
+    </div>
+
+    <div style="margin-top:4rem;background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);padding:2rem;">
+      <h2 style="text-align:center;margin-bottom:2rem;">Как подключиться</h2>
+      <div style="max-width:650px;margin:0 auto;">
+        <div class="instruction-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h4>Скачайте приложение</h4>
+            <p>Выберите клиент для вашей платформы из списка выше и установите его.</p>
+          </div>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h4>Скопируйте ссылку подписки</h4>
+            <p>В личном кабинете нажмите "Копировать" рядом с ссылкой подписки.</p>
+          </div>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h4>Добавьте подписку в приложение</h4>
+            <p>Откройте VPN-клиент, найдите опцию "Добавить подписку" или "Add subscription" и вставьте скопированную ссылку.</p>
+          </div>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h4>Подключайтесь</h4>
+            <p>Выберите сервер из списка и нажмите "Подключиться". Серверы обновляются автоматически из подписки.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:3rem;background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);padding:2rem;">
+      <h2 style="text-align:center;margin-bottom:1.5rem;">Подключение на роутере</h2>
+      <div style="max-width:650px;margin:0 auto;">
+        <p style="margin-bottom:1rem;">Для роутеров можно использовать VLESS-подписку. В личном кабинете доступна ссылка для подписки, которую можно импортировать в прошивки роутеров с поддержкой Xray (OpenWrt, Keenetic и др.).</p>
+        <p>Если вам нужна помощь с настройкой роутера, обратитесь в <a href="/support">поддержку</a>.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section"><h4>NoryxVPN</h4><p style="color:var(--text-muted);">Быстрый и надежный VPN.</p></div>
+      <div class="footer-section"><h4>Продукт</h4><ul><li><a href="/tariffs">Тарифы</a></li><li><a href="/servers">Серверы</a></li></ul></div>
+      <div class="footer-section"><h4>Контакты</h4><ul><li><a href="https://t.me/NoryxWebBot" target="_blank">Telegram бот</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>NoryxVPN. Все права защищены.</p></div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    function showPlatform(btn, platform) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#appsGrid .card').forEach(card => {
+        if (platform === 'all' || card.dataset.platform === platform) {
+          card.style.display = '';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

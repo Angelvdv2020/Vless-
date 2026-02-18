@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Серверы - NoryxVPN</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">NoryxVPN</a>
+      <button class="mobile-menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')">&#9776;</button>
+      <nav>
+        <ul>
+          <li><a href="/">Главная</a></li>
+          <li><a href="/tariffs">Тарифы</a></li>
+          <li><a href="/servers" class="active">Серверы</a></li>
+          <li><a href="/apps">Приложения</a></li>
+          <li><a href="/support">Поддержка</a></li>
+          <li data-auth="guest"><a href="/login" class="btn btn-primary btn-sm">Войти</a></li>
+          <li data-auth="user" style="display:none"><a href="/cabinet" class="btn btn-primary btn-sm">Кабинет</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" style="padding:3rem 2rem 2.5rem;">
+    <div class="hero-content">
+      <h1>Серверы</h1>
+      <p>Наша глобальная сеть серверов для стабильного подключения</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <div id="serversTable">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Сервер</th>
+            <th>Статус</th>
+            <th>Пользователей</th>
+          </tr>
+        </thead>
+        <tbody id="serversList">
+          <tr><td colspan="3"><div class="loading-spinner"><div class="spinner"></div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="text-align:center;margin-top:2rem;">
+      <button class="btn btn-secondary" onclick="loadServers()">Обновить</button>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section"><h4>NoryxVPN</h4><p style="color:var(--text-muted);">Быстрый и надежный VPN.</p></div>
+      <div class="footer-section"><h4>Продукт</h4><ul><li><a href="/tariffs">Тарифы</a></li><li><a href="/servers">Серверы</a></li><li><a href="/apps">Приложения</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>NoryxVPN. Все права защищены.</p></div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    async function loadServers() {
+      const tbody = document.getElementById('serversList');
+      try {
+        const servers = await API.get('/api/servers');
+        if (!servers || servers.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted);">Серверы загружаются из панели Remnawave</td></tr>';
+          return;
+        }
+        tbody.innerHTML = servers.map(s =>
+          '<tr>' +
+            '<td><strong>' + s.name + '</strong></td>' +
+            '<td><span class="server-status ' + s.status + '">' + (s.status === 'online' ? 'Онлайн' : 'Оффлайн') + '</span></td>' +
+            '<td>' + (s.usersCount || 0) + '</td>' +
+          '</tr>'
+        ).join('');
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted);">Не удалось загрузить список серверов</td></tr>';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadServers);
+  </script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Реферальная программа - NoryxVPN</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">NoryxVPN</a>
+      <button class="mobile-menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')">&#9776;</button>
+      <nav>
+        <ul>
+          <li><a href="/cabinet">Кабинет</a></li>
+          <li><a href="/tariffs">Тарифы</a></li>
+          <li><a href="/referral" class="active">Рефералка</a></li>
+          <li><a href="/apps">Приложения</a></li>
+          <li><a href="/support">Поддержка</a></li>
+          <li><a href="#" class="btn btn-secondary btn-sm" onclick="Auth.logout()">Выйти</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div style="margin-bottom:2rem;">
+      <h1 style="margin-bottom:0.25rem;">Реферальная программа</h1>
+      <p>Приглашайте друзей и получайте бонусы</p>
+    </div>
+
+    <div class="referral-stats" id="refStats">
+      <div class="referral-stat-card">
+        <div class="referral-stat-value" id="refBalance">0 &#8381;</div>
+        <div class="referral-stat-label">Баланс</div>
+      </div>
+      <div class="referral-stat-card">
+        <div class="referral-stat-value" id="refEarned">0 &#8381;</div>
+        <div class="referral-stat-label">Всего заработано</div>
+      </div>
+      <div class="referral-stat-card">
+        <div class="referral-stat-value" id="refCount">0</div>
+        <div class="referral-stat-label">Рефералов</div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);padding:2rem;margin-bottom:2rem;">
+      <h3 style="margin-bottom:1rem;">Ваша реферальная ссылка</h3>
+      <div class="key-display" id="refLinkBlock" style="display:none;">
+        <code id="refLink"></code>
+        <button class="btn btn-primary btn-sm" onclick="copyToClipboard(document.getElementById('refLink').textContent)">Копировать</button>
+      </div>
+      <p style="font-size:0.9rem;color:var(--text-muted);">Поделитесь этой ссылкой с друзьями. Когда они зарегистрируются и оплатят подписку, вы получите бонус на баланс.</p>
+    </div>
+
+    <div style="background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);padding:2rem;margin-bottom:2rem;">
+      <h3 style="margin-bottom:1.5rem;">Как это работает</h3>
+      <div style="max-width:600px;">
+        <div class="instruction-step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h4>Поделитесь ссылкой</h4>
+            <p>Скопируйте реферальную ссылку и отправьте её друзьям</p>
+          </div>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h4>Друг регистрируется</h4>
+            <p>Ваш друг переходит по ссылке и создает аккаунт</p>
+          </div>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h4>Друг покупает подписку</h4>
+            <p>При оплате первой подписки вам начисляется бонус</p>
+          </div>
+        </div>
+        <div class="instruction-step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h4>Получите бонус</h4>
+            <p>Бонус зачисляется на ваш баланс автоматически</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);padding:2rem;">
+      <h3 style="margin-bottom:1rem;">Ваши рефералы</h3>
+      <div id="refList">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section"><h4>NoryxVPN</h4><p style="color:var(--text-muted);">Быстрый и надежный VPN.</p></div>
+    </div>
+    <div class="footer-bottom"><p>NoryxVPN. Все права защищены.</p></div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    async function loadReferralData() {
+      if (!Auth.requireAuth()) return;
+
+      try {
+        const data = await API.get('/api/referrals/stats');
+
+        document.getElementById('refBalance').innerHTML = (data.balance || 0) + ' &#8381;';
+        document.getElementById('refEarned').innerHTML = (data.total_earned || 0) + ' &#8381;';
+        document.getElementById('refCount').textContent = data.total_referrals || 0;
+
+        if (data.referral_code) {
+          var link = window.location.origin + '/register?ref=' + data.referral_code;
+          document.getElementById('refLink').textContent = link;
+          document.getElementById('refLinkBlock').style.display = '';
+        }
+
+        var refList = document.getElementById('refList');
+        var referrals = data.referrals || [];
+        if (referrals.length === 0) {
+          refList.innerHTML = '<div class="empty-state" style="padding:2rem;"><p>У вас пока нет рефералов</p></div>';
+        } else {
+          refList.innerHTML = '<table class="table"><thead><tr><th>Пользователь</th><th>Дата регистрации</th></tr></thead><tbody>' +
+            referrals.map(function(r) {
+              return '<tr><td>' + (r.username || 'Пользователь') + '</td><td>' + formatDate(r.created_at) + '</td></tr>';
+            }).join('') +
+          '</tbody></table>';
+        }
+      } catch (err) {
+        document.getElementById('refList').innerHTML = '<div class="empty-state"><p>Ошибка загрузки данных</p></div>';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReferralData);
+  </script>
+</body>
+</html>

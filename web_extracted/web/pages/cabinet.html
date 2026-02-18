@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Личный кабинет - NoryxVPN</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">NoryxVPN</a>
+      <button class="mobile-menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')">&#9776;</button>
+      <nav>
+        <ul>
+          <li><a href="/cabinet" class="active">Кабинет</a></li>
+          <li><a href="/tariffs">Тарифы</a></li>
+          <li><a href="/referral">Рефералка</a></li>
+          <li><a href="/apps">Приложения</a></li>
+          <li><a href="/support">Поддержка</a></li>
+          <li><a href="#" class="btn btn-secondary btn-sm" onclick="Auth.logout()">Выйти</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:2rem;">
+      <div>
+        <h1 style="margin-bottom:0.25rem;">Личный кабинет</h1>
+        <p id="userEmail" style="margin:0;"></p>
+      </div>
+      <div style="display:flex;gap:0.75rem;">
+        <a href="/tariffs" class="btn btn-primary">Купить подписку</a>
+        <button class="btn btn-success" id="trialBtn" style="display:none;" onclick="activateTrial()">Пробный период</button>
+      </div>
+    </div>
+
+    <div class="stats" id="profileStats" style="margin-bottom:2rem;">
+      <div class="stat-card"><div class="stat-number" id="statBalance">0 &#8381;</div><div class="stat-label">Баланс</div></div>
+      <div class="stat-card"><div class="stat-number" id="statSubs">0</div><div class="stat-label">Подписок</div></div>
+      <div class="stat-card"><div class="stat-number" id="statReferrals">---</div><div class="stat-label">Рефералов</div></div>
+      <div class="stat-card"><div class="stat-number" id="statDays">---</div><div class="stat-label">Дней до конца</div></div>
+    </div>
+
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab(this,'subsTab')">Подписки</button>
+      <button class="tab-btn" onclick="switchTab(this,'paymentsTab')">Платежи</button>
+      <button class="tab-btn" onclick="switchTab(this,'profileTab')">Профиль</button>
+    </div>
+
+    <div id="subsTab">
+      <div id="subsList"><div class="loading-spinner"><div class="spinner"></div></div></div>
+    </div>
+
+    <div id="paymentsTab" style="display:none;">
+      <div id="paymentsList"><div class="loading-spinner"><div class="spinner"></div></div></div>
+    </div>
+
+    <div id="profileTab" style="display:none;">
+      <div class="card" style="max-width:500px;">
+        <h3>Настройки профиля</h3>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="profileEmail" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Имя пользователя</label>
+          <input type="text" class="form-input" id="profileUsername">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Telegram ID</label>
+          <input type="text" class="form-input" id="profileTgId" placeholder="Ваш Telegram ID">
+        </div>
+        <button class="btn btn-primary" onclick="saveProfile()">Сохранить</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="renewModal">
+    <div class="modal">
+      <h3>Продлить подписку</h3>
+      <p style="margin-bottom:1rem;">Выберите тариф и период:</p>
+      <div style="margin-bottom:1rem;">
+        <div class="tab-nav" style="border-bottom:none;margin-bottom:0.5rem;">
+          <button class="tab-btn active" onclick="setRenewPeriod(this,'monthly')">1 мес.</button>
+          <button class="tab-btn" onclick="setRenewPeriod(this,'quarterly')">3 мес.</button>
+          <button class="tab-btn" onclick="setRenewPeriod(this,'yearly')">1 год</button>
+        </div>
+      </div>
+      <div id="renewTariffs"></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('renewModal')">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section"><h4>NoryxVPN</h4><p style="color:var(--text-muted);">Быстрый и надежный VPN.</p></div>
+    </div>
+    <div class="footer-bottom"><p>NoryxVPN. Все права защищены.</p></div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    var renewSubId = '';
+    var renewPeriod = 'monthly';
+    var renewTariffsCache = [];
+
+    var priceFields = {
+      monthly: 'price_monthly',
+      quarterly: 'price_quarterly',
+      yearly: 'price_yearly'
+    };
+
+    var periodNames = {
+      monthly: '30 дн.',
+      quarterly: '90 дн.',
+      yearly: '365 дн.'
+    };
+
+    function switchTab(btn, tabId) {
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      ['subsTab','paymentsTab','profileTab'].forEach(function(id) {
+        document.getElementById(id).style.display = id === tabId ? '' : 'none';
+      });
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    async function loadCabinet() {
+      if (!Auth.requireAuth()) return;
+
+      try {
+        var results = await Promise.all([
+          API.get('/api/auth/profile'),
+          API.get('/api/subscriptions')
+        ]);
+        var profile = results[0];
+        var subs = results[1];
+
+        document.getElementById('userEmail').textContent = profile.email;
+        document.getElementById('statBalance').innerHTML = (profile.balance || 0) + ' &#8381;';
+        document.getElementById('profileEmail').value = profile.email;
+        document.getElementById('profileUsername').value = profile.username || '';
+        document.getElementById('profileTgId').value = profile.telegram_id || '';
+
+        if (!profile.trial_used) {
+          document.getElementById('trialBtn').style.display = '';
+        }
+
+        var activeSubs = subs.filter(function(s) { return s.status === 'active' || s.status === 'trial'; });
+        document.getElementById('statSubs').textContent = activeSubs.length;
+
+        if (activeSubs.length > 0) {
+          var nearestExpiry = activeSubs.reduce(function(min, s) {
+            return new Date(s.expires_at) < new Date(min.expires_at) ? s : min;
+          });
+          document.getElementById('statDays').textContent = daysUntil(nearestExpiry.expires_at);
+        }
+
+        renderSubs(subs);
+        loadPayments();
+      } catch (err) {
+        document.getElementById('subsList').innerHTML = '<div class="empty-state"><h3>Ошибка загрузки</h3><p>' + err.message + '</p></div>';
+      }
+    }
+
+    function renderSubs(subs) {
+      var container = document.getElementById('subsList');
+      if (!subs || subs.length === 0) {
+        container.innerHTML = '<div class="empty-state"><h3>Нет подписок</h3><p>Купите подписку или активируйте пробный период</p><a href="/tariffs" class="btn btn-primary">Выбрать тариф</a></div>';
+        return;
+      }
+
+      container.innerHTML = subs.map(function(sub) {
+        var isActive = (sub.status === 'active' || sub.status === 'trial') && new Date(sub.expires_at) > new Date();
+        var days = daysUntil(sub.expires_at);
+        var statusBadge = isActive
+          ? '<span class="key-status-badge">✓ Active</span>'
+          : '<span class="key-status-badge expired">✕ Expired</span>';
+        var tariffName = sub.tariff ? sub.tariff.name : 'Подписка';
+        var trafficText = sub.traffic_limit_gb
+          ? (sub.traffic_used_gb || 0).toFixed(1) + ' / ' + sub.traffic_limit_gb + ' ГБ'
+          : (sub.traffic_used_gb || 0).toFixed(1) + ' ГБ';
+        var devices = sub.tariff ? sub.tariff.max_devices : '---';
+        var protocolTag = '<span class="key-protocol-tag">VLESS</span>';
+
+        return '<div class="key-card">' +
+          '<div class="key-card-header">' +
+            '<div class="key-card-title">' + protocolTag.replace('</span>', '') + tariffName + '</span></div>' +
+            statusBadge +
+          '</div>' +
+          (sub.subscription_url ? '<div class="key-content"><div class="key-display-value">' + sub.subscription_url + '</div></div>' : '') +
+          '<div class="sub-card-stats">' +
+            '<div class="sub-stat"><div class="sub-stat-value">' + days + '</div><div class="sub-stat-label">Дней осталось</div></div>' +
+            '<div class="sub-stat"><div class="sub-stat-value">' + trafficText + '</div><div class="sub-stat-label">Трафик</div></div>' +
+            '<div class="sub-stat"><div class="sub-stat-value">' + devices + '</div><div class="sub-stat-label">Устройств</div></div>' +
+            '<div class="sub-stat"><div class="sub-stat-value">' + formatDate(sub.expires_at) + '</div><div class="sub-stat-label">Истекает</div></div>' +
+          '</div>' +
+          '<div class="key-actions">' +
+            '<button class="key-copy-btn" onclick="copyToClipboard(\'' + (sub.subscription_url || '') + '\', this)">📋 Копировать</button>' +
+            (isActive ? '<button class="key-copy-btn" onclick="openRenew(\'' + sub.id + '\')">↻ Продлить</button>' : '<button class="key-copy-btn" onclick="openRenew(\'' + sub.id + '\')">⟳ Возобновить</button>') +
+            '<a href="/apps" class="key-copy-btn" style="display:inline-flex;text-decoration:none;margin:0;">⚙️ Настроить</a>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    async function loadPayments() {
+      try {
+        document.getElementById('paymentsList').innerHTML = '<div class="empty-state"><p>История платежей будет здесь</p></div>';
+      } catch (e) {}
+    }
+
+    function setRenewPeriod(btn, period) {
+      var modal = document.getElementById('renewModal');
+      modal.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      renewPeriod = period;
+      renderRenewTariffs();
+    }
+
+    function renderRenewTariffs() {
+      var container = document.getElementById('renewTariffs');
+      var paidTariffs = renewTariffsCache.filter(function(t) { return !t.is_trial; });
+      container.innerHTML = paidTariffs.map(function(t) {
+        var price = Number(t[priceFields[renewPeriod]]) || 0;
+        return '<div class="card" style="margin-bottom:0.75rem;cursor:pointer;" onclick="doRenew(\'' + renewSubId + '\',\'' + t.id + '\')">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+            '<div><strong>' + t.name + '</strong><br><span style="font-size:0.85rem;color:var(--text-muted);">' + periodNames[renewPeriod] + ' / ' + t.max_devices + ' устр.</span></div>' +
+            '<div style="font-size:1.25rem;font-weight:700;">' + price + ' &#8381;</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    async function openRenew(subId) {
+      renewSubId = subId;
+      renewPeriod = 'monthly';
+      var modal = document.getElementById('renewModal');
+      var container = document.getElementById('renewTariffs');
+      container.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+
+      modal.querySelectorAll('.tab-btn').forEach(function(b, i) {
+        b.classList.toggle('active', i === 0);
+      });
+
+      modal.classList.add('active');
+
+      try {
+        renewTariffsCache = await API.get('/api/tariffs');
+        renderRenewTariffs();
+      } catch (e) {
+        container.innerHTML = '<p style="color:var(--danger);">Ошибка загрузки тарифов</p>';
+      }
+    }
+
+    async function doRenew(subId, tariffId) {
+      try {
+        await API.post('/api/subscriptions/' + subId + '/renew', { tariff_id: tariffId, period: renewPeriod });
+        showToast('Подписка продлена', 'success');
+        closeModal('renewModal');
+        loadCabinet();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function activateTrial() {
+      var btn = document.getElementById('trialBtn');
+      btn.disabled = true;
+      btn.textContent = 'Активация...';
+      try {
+        var tariffs = await API.get('/api/tariffs');
+        var trial = tariffs.find(function(t) { return t.is_trial; });
+        if (!trial) throw new Error('Пробный тариф недоступен');
+        await API.post('/api/subscriptions/purchase', { tariff_id: trial.id });
+        showToast('Пробный период активирован!', 'success');
+        loadCabinet();
+      } catch (err) {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Пробный период';
+      }
+    }
+
+    async function saveProfile() {
+      try {
+        await API.put('/api/auth/profile', {
+          username: document.getElementById('profileUsername').value,
+          telegram_id: document.getElementById('profileTgId').value || null,
+        });
+        showToast('Профиль сохранен', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCabinet);
+  </script>
+</body>
+</html>

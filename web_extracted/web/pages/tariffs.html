@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тарифы - NoryxVPN</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">NoryxVPN</a>
+      <button class="mobile-menu-toggle" onclick="document.querySelector('nav').classList.toggle('open')">&#9776;</button>
+      <nav>
+        <ul>
+          <li><a href="/">Главная</a></li>
+          <li><a href="/tariffs" class="active">Тарифы</a></li>
+          <li><a href="/servers">Серверы</a></li>
+          <li><a href="/apps">Приложения</a></li>
+          <li><a href="/support">Поддержка</a></li>
+          <li data-auth="guest"><a href="/login" class="btn btn-primary btn-sm">Войти</a></li>
+          <li data-auth="user" style="display:none"><a href="/cabinet" class="btn btn-primary btn-sm">Кабинет</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero" style="padding:3rem 2rem 2.5rem;">
+    <div class="hero-content">
+      <h1 style="background: linear-gradient(135deg, #00F2FF 0%, #0AC8D9 50%, #00F2FF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Премиальные тарифы</h1>
+      <p>Выберите подходящий план. Без скрытых платежей, полная прозрачность.</p>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="tab-nav" style="justify-content:center;">
+      <button class="tab-btn active" onclick="switchPeriod(this,'monthly')">1 месяц</button>
+      <button class="tab-btn" onclick="switchPeriod(this,'quarterly')">3 месяца</button>
+      <button class="tab-btn" onclick="switchPeriod(this,'yearly')">1 год</button>
+    </div>
+
+    <div id="tariffsGrid" class="pricing-grid">
+      <div class="loading-spinner" style="grid-column:1/-1;"><div class="spinner"></div></div>
+    </div>
+
+    <div style="text-align:center;margin-top:4rem;padding:2.5rem;background:rgba(22,22,24,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:var(--radius-lg);border:1px solid rgba(42,42,45,0.5);box-shadow:0 8px 32px rgba(0,242,255,0.05),inset 0 1px 0 rgba(255,255,255,0.05);">
+      <h2 style="margin-bottom:1rem;background: linear-gradient(135deg, #00F2FF 0%, #0AC8D9 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Включено во все тарифы</h2>
+      <div class="cards-grid" style="margin-top:1.5rem;text-align:left;">
+        <div class="card" style="border:none;background:transparent;"><div style="font-size:1.5rem;margin-bottom:0.5rem;">⚡</div><h4 style="font-size:1rem;color:var(--primary);">Протокол VLESS</h4><p>Ультралёгкий протокол нового поколения</p></div>
+        <div class="card" style="border:none;background:transparent;"><div style="font-size:1.5rem;margin-bottom:0.5rem;">🌍</div><h4 style="font-size:1rem;color:var(--primary);">Все серверы</h4><p>Полный доступ ко всей глобальной сети</p></div>
+        <div class="card" style="border:none;background:transparent;"><div style="font-size:1.5rem;margin-bottom:0.5rem;">🔧</div><h4 style="font-size:1rem;color:var(--primary);">Поддержка 24/7</h4><p>Помощь в Telegram в любое время дня и ночи</p></div>
+        <div class="card" style="border:none;background:transparent;"><div style="font-size:1.5rem;margin-bottom:0.5rem;">🛡️</div><h4 style="font-size:1rem;color:var(--primary);">Военное шифрование</h4><p>AES-256 защита ваших данных</p></div>
+        <div class="card" style="border:none;background:transparent;"><div style="font-size:1.5rem;margin-bottom:0.5rem;">🚀</div><h4 style="font-size:1rem;color:var(--primary);">Молниеносная скорость</h4><p>Оптимизированные маршруты без ограничений</p></div>
+        <div class="card" style="border:none;background:transparent;"><div style="font-size:1.5rem;margin-bottom:0.5rem;">🔐</div><h4 style="font-size:1rem;color:var(--primary);">Нулевое логирование</h4><p>Полная конфиденциальность вашей активности</p></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section"><h4>NoryxVPN</h4><p style="color:var(--text-muted);">Быстрый и надежный VPN.</p></div>
+      <div class="footer-section"><h4>Продукт</h4><ul><li><a href="/tariffs">Тарифы</a></li><li><a href="/servers">Серверы</a></li><li><a href="/apps">Приложения</a></li></ul></div>
+      <div class="footer-section"><h4>Контакты</h4><ul><li><a href="https://t.me/NoryxWebBot" target="_blank">Telegram бот</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><p>NoryxVPN. Все права защищены.</p></div>
+  </footer>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    var allTariffs = [];
+    var currentPeriod = 'monthly';
+
+    var periodLabels = {
+      monthly: '/ мес.',
+      quarterly: '/ 3 мес.',
+      yearly: '/ год'
+    };
+
+    var priceFields = {
+      monthly: 'price_monthly',
+      quarterly: 'price_quarterly',
+      yearly: 'price_yearly'
+    };
+
+    async function loadTariffs() {
+      try {
+        allTariffs = await API.get('/api/tariffs');
+        renderTariffs();
+      } catch (err) {
+        document.getElementById('tariffsGrid').innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><p>Не удалось загрузить тарифы</p></div>';
+      }
+    }
+
+    function switchPeriod(btn, period) {
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentPeriod = period;
+      renderTariffs();
+    }
+
+    function renderTariffs() {
+      var grid = document.getElementById('tariffsGrid');
+      var filtered = allTariffs.filter(function(t) { return !t.is_trial; });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><p>Нет тарифов</p></div>';
+        return;
+      }
+
+      var mid = Math.floor(filtered.length / 2);
+      grid.innerHTML = filtered.map(function(t, i) {
+        var isFeatured = i === mid && filtered.length > 1;
+        var features = Array.isArray(t.features) ? t.features : [];
+        var price = Number(t[priceFields[currentPeriod]]) || 0;
+        var priceText = price + '<span class="price-period"> &#8381;</span>';
+        var periodText = periodLabels[currentPeriod];
+
+        return '<div class="pricing-card' + (isFeatured ? ' featured" data-badge="Популярный"' : '"') + '>' +
+          '<h3>' + t.name + '</h3>' +
+          '<p style="color:var(--text-muted);font-size:0.85rem;">' + (t.description || '') + '</p>' +
+          '<div class="price">' + priceText + '</div>' +
+          '<div style="color:var(--text-muted);font-size:0.85rem;margin-bottom:1rem;">' + periodText + '</div>' +
+          '<ul class="features-list">' + features.map(function(f) { return '<li>' + f + '</li>'; }).join('') + '</ul>' +
+          '<button class="btn ' + (isFeatured ? 'btn-primary' : 'btn-secondary') + ' btn-block" onclick="purchaseTariff(\'' + t.id + '\')">Купить</button>' +
+        '</div>';
+      }).join('');
+    }
+
+    async function purchaseTariff(tariffId) {
+      if (!Auth.isLoggedIn()) {
+        window.location.href = '/register';
+        return;
+      }
+      try {
+        var result = await API.post('/api/subscriptions/purchase', { tariff_id: tariffId, period: currentPeriod });
+        showToast('Подписка оформлена!', 'success');
+        setTimeout(function() { window.location.href = '/cabinet'; }, 1000);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadTariffs);
+  </script>
+</body>
+</html>
