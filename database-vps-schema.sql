@@ -142,7 +142,7 @@ CREATE INDEX idx_payments_created_at ON payments(created_at);
 -- Таблица VPN серверов
 CREATE TABLE IF NOT EXISTS servers (
     id SERIAL PRIMARY KEY,
-    remnawave_id INTEGER, -- ID сервера в RemnaWave
+    x3ui_id INTEGER, -- ID сервера в 3X-UI
     name VARCHAR(100) NOT NULL,
     country VARCHAR(100) NOT NULL,
     country_code VARCHAR(2),
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS servers (
 CREATE INDEX idx_servers_status ON servers(status);
 CREATE INDEX idx_servers_is_active ON servers(is_active);
 CREATE INDEX idx_servers_country ON servers(country);
-CREATE INDEX idx_servers_remnawave_id ON servers(remnawave_id);
+CREATE INDEX idx_servers_x3ui_id ON servers(x3ui_id);
 
 -- Вставка дефолтных серверов (примеры)
 INSERT INTO servers (name, country, country_code, city, ip_address, status) VALUES
@@ -180,7 +180,7 @@ CREATE TABLE IF NOT EXISTS vpn_keys (
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     subscription_id UUID REFERENCES subscriptions(id) ON DELETE CASCADE,
     server_id INTEGER REFERENCES servers(id),
-    remnawave_user_id INTEGER, -- ID пользователя в RemnaWave
+    x3ui_user_id INTEGER, -- ID пользователя в 3X-UI
     key_uuid VARCHAR(255) NOT NULL, -- UUID ключа
     subscription_url TEXT NOT NULL, -- URL для подписки
     qr_code TEXT, -- Base64 QR код
@@ -197,7 +197,7 @@ CREATE INDEX idx_vpn_keys_user_id ON vpn_keys(user_id);
 CREATE INDEX idx_vpn_keys_subscription_id ON vpn_keys(subscription_id);
 CREATE INDEX idx_vpn_keys_server_id ON vpn_keys(server_id);
 CREATE INDEX idx_vpn_keys_status ON vpn_keys(status);
-CREATE INDEX idx_vpn_keys_remnawave_user_id ON vpn_keys(remnawave_user_id);
+CREATE INDEX idx_vpn_keys_x3ui_user_id ON vpn_keys(x3ui_user_id);
 
 -- ───────────────────────────────────────────────────────────────
 -- 6. РЕФЕРАЛЬНАЯ СИСТЕМА

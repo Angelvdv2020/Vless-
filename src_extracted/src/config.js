@@ -67,7 +67,7 @@ export const config = {
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS, 10) || 12,
   },
 
-  remnawave: {
+  x3ui: {
     baseUrl: process.env.REMNA_BASE_URL || 'http://127.0.0.1:3000',
     apiBaseUrl: process.env.REMNA_API_BASE_URL || 'https://panel.yourdomain.com/',
     authMode: process.env.REMNA_API_AUTH_MODE || 'basic',

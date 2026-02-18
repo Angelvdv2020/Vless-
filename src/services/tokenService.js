@@ -12,7 +12,7 @@ const TOKEN_EXPIRY = parseInt(process.env.TOKEN_EXPIRY_SECONDS) || 300; // 5 min
 /**
  * Generate a secure download token
  * @param {number} userId - User ID
- * @param {string} subscriptionId - RemnaWave subscription ID
+ * @param {string} subscriptionId - VPN client/subscription reference ID
  * @returns {string} HMAC token
  */
 function generateDownloadToken(userId, subscriptionId) {

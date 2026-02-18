@@ -8,10 +8,22 @@ require('dotenv').config();
 const vpnRoutes = require('./routes/vpn');
 const adminRoutes = require('./routes/admin');
 const adminX3UIRoutes = require('./routes/admin-x3ui');
+const authRoutes = require('./routes/auth');
+const siteBuilderRoutes = require('./routes/site-builder');
+const siteContentRoutes = require('./routes/site-content');
+const { validateEnv } = require('./config/env');
+const { getHealthReport } = require('./services/health');
 const { initX3UISession, startSessionRefresh } = require('./middleware/x3ui-session');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+try {
+  validateEnv();
+} catch (error) {
+  console.error('❌ Environment configuration error:', error.message);
+  process.exit(1);
+}
 
 // Security middleware
 app.use(helmet({
@@ -19,6 +31,12 @@ app.use(helmet({
 }));
 
 // CORS configuration
+
+if (process.env.NODE_ENV === 'production' && !process.env.ALLOWED_ORIGINS) {
+  console.error('❌ ALLOWED_ORIGINS is required in production');
+  process.exit(1);
+}
+
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
   .split(',')
   .map(o => o.trim());
@@ -56,18 +74,33 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX || 10),
+  message: 'Too many auth attempts. Please try again later.',
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
 // Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'Noryx Premium VPN' });
+app.get('/health', async (req, res) => {
+  const report = await getHealthReport();
+  if (!report.ok) {
+    return res.status(503).json({ status: 'degraded', service: 'Noryx Premium VPN', ...report });
+  }
+  return res.status(200).json({ status: 'ok', service: 'Noryx Premium VPN', ...report });
 });
 
 // Initialize 3X-UI session
 app.use(initX3UISession);
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/vpn', vpnRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/x3ui', adminX3UIRoutes);
+app.use('/api/admin/site-builder', siteBuilderRoutes);
+app.use('/api/site-content', siteContentRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -95,6 +128,9 @@ app.listen(PORT, '0.0.0.0', () => {
 
   console.log('\n📋 Available Endpoints:');
   console.log('   GET  /health');
+  console.log('   POST /api/auth/register');
+  console.log('   POST /api/auth/login');
+  console.log('   GET  /api/auth/profile');
   console.log('   POST /api/vpn/connect');
   console.log('   GET  /api/vpn/countries');
   console.log('   POST /api/vpn/change-country');
@@ -119,6 +155,10 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('   GET    /api/admin/x3ui/inbounds-info');
   console.log('   POST   /api/admin/x3ui/sync-database');
   console.log('   POST   /api/admin/x3ui/cleanup-expired');
+  console.log('   GET    /api/admin/site-builder/content');
+  console.log('   PUT    /api/admin/site-builder/content/:key');
+  console.log('   POST   /api/admin/site-builder/ai/text');
+  console.log('   POST   /api/admin/site-builder/ai/image');
 });
 
 module.exports = app;

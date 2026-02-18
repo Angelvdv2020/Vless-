@@ -1,383 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Noryx Premium VPN</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 450px;
-            width: 100%;
-            padding: 40px 30px;
-        }
-
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .logo h1 {
-            font-size: 28px;
-            color: #667eea;
-            margin-bottom: 5px;
-        }
-
-        .logo p {
-            color: #888;
-            font-size: 14px;
-        }
-
-        .status {
-            text-align: center;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 25px;
-        }
-
-        .status-indicator {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            margin: 0 auto 15px;
-            background: #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-        }
-
-        .status-indicator.connected {
-            background: #4caf50;
-        }
-
-        .status-text {
-            font-size: 16px;
-            color: #333;
-            font-weight: 500;
-        }
-
-        .location-selector {
-            margin-bottom: 25px;
-        }
-
-        .location-selector label {
-            display: block;
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .location-selector select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 15px;
-            background: white;
-            cursor: pointer;
-            transition: border-color 0.3s;
-        }
-
-        .location-selector select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .connect-button {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin-bottom: 15px;
-        }
-
-        .connect-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .connect-button:active {
-            transform: translateY(0);
-        }
-
-        .connect-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            display: none;
-        }
-
-        .result.success {
-            background: #e8f5e9;
-            border: 1px solid #4caf50;
-            color: #2e7d32;
-        }
-
-        .result.error {
-            background: #ffebee;
-            border: 1px solid #f44336;
-            color: #c62828;
-        }
-
-        .qr-code {
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .qr-code img {
-            max-width: 250px;
-            border-radius: 10px;
-        }
-
-        .download-link {
-            display: inline-block;
-            margin-top: 10px;
-            padding: 10px 20px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: background 0.3s;
-        }
-
-        .download-link:hover {
-            background: #5568d3;
-        }
-
-        .info {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #666;
-        }
-
-        .platform-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #e0e0e0;
-            border-radius: 12px;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noryx VPN</title>
+  <style>
+    body{font-family:Arial,sans-serif;max-width:720px;margin:30px auto;padding:0 16px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+    .card{border:1px solid #ddd;padding:16px;border-radius:12px;margin-top:14px}
+    button,a.btn{padding:10px 14px;border-radius:8px;border:0;background:#4f46e5;color:#fff;text-decoration:none;cursor:pointer}
+    select{padding:10px;width:100%;margin:8px 0}
+    pre{white-space:pre-wrap;background:#f5f5f5;padding:10px;border-radius:8px}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo">
-            <h1>🛡️ Noryx Premium</h1>
-            <p>Secure VPN Connection</p>
-        </div>
+  <div class="top">
+    <h1>Noryx VPN</h1>
+    <div id="authActions"></div>
+  </div>
 
-        <div class="status">
-            <div class="status-indicator" id="statusIndicator">🔒</div>
-            <div class="status-text" id="statusText">Disconnected</div>
-            <div class="platform-badge" id="platformBadge">Detecting platform...</div>
-        </div>
 
-        <div class="location-selector">
-            <label for="countrySelect">Choose Location:</label>
-            <select id="countrySelect">
-                <option value="auto">🌍 Auto (Best)</option>
-                <option value="us">🇺🇸 United States</option>
-                <option value="uk">🇬🇧 United Kingdom</option>
-                <option value="de">🇩🇪 Germany</option>
-                <option value="nl">🇳🇱 Netherlands</option>
-                <option value="sg">🇸🇬 Singapore</option>
-                <option value="jp">🇯🇵 Japan</option>
-                <option value="ca">🇨🇦 Canada</option>
-            </select>
-        </div>
+  <div class="card">
+    <h3>Landing Content (published from Builder)</h3>
+    <div id="landingSections">Загрузка...</div>
+  </div>
 
-        <button class="connect-button" id="connectButton">
-            Connect to VPN
-        </button>
+  <div class="card">
+    <h3>Smart Connect</h3>
+    <select id="countrySelect"></select>
+    <button id="connectButton">Подключить VPN</button>
+    <div id="result" style="margin-top:10px"></div>
+  </div>
 
-        <div class="result" id="result"></div>
-    </div>
+<script>
+const API_URL = window.location.origin + '/api/vpn';
+const session = JSON.parse(localStorage.getItem('vpn_session') || 'null');
 
-    <script>
-        const API_URL = window.location.origin + '/api/vpn';
-        const USER_ID = 1; // Demo user - in production, get from auth session
+function authHeader() {
+  const token = session?.token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
-        const statusIndicator = document.getElementById('statusIndicator');
-        const statusText = document.getElementById('statusText');
-        const platformBadge = document.getElementById('platformBadge');
-        const countrySelect = document.getElementById('countrySelect');
-        const connectButton = document.getElementById('connectButton');
-        const result = document.getElementById('result');
+function renderAuth() {
+  const el = document.getElementById('authActions');
+  if (!session?.token) {
+    el.innerHTML = '<a class="btn" href="/login.html">Войти</a> <a class="btn" href="/register.html">Регистрация</a>';
+    return;
+  }
+  const role = session.user?.role;
+  if (role === 'admin') {
+    el.innerHTML = '<a class="btn" href="/admin.html">Админ</a> <a class="btn" href="/builder.html">Конструктор</a> <button onclick="logout()">Выйти</button>';
+  } else {
+    el.innerHTML = '<a class="btn" href="/cabinet.html">ЛК</a> <button onclick="logout()">Выйти</button>';
+  }
+}
 
-        // Detect platform on load
-        const userAgent = navigator.userAgent;
-        let detectedPlatform = 'Unknown';
+function logout(){ localStorage.removeItem('vpn_session'); location.reload(); }
 
-        if (/iPhone|iPad|iPod/i.test(userAgent)) {
-            detectedPlatform = 'iOS';
-        } else if (/Android/i.test(userAgent)) {
-            detectedPlatform = 'Android';
-        } else if (/Windows/i.test(userAgent)) {
-            detectedPlatform = 'Windows';
-        } else if (/Macintosh|Mac OS X/i.test(userAgent)) {
-            detectedPlatform = 'macOS';
-        } else if (/Linux/i.test(userAgent)) {
-            detectedPlatform = 'Linux';
-        }
 
-        platformBadge.textContent = `Platform: ${detectedPlatform}`;
+async function loadLandingSections() {
+  const box = document.getElementById('landingSections');
+  try {
+    const res = await fetch('/api/site-content/published');
+    const data = await res.json();
+    const items = data.items || [];
+    box.innerHTML = items.map(item => `<div style="margin-bottom:10px"><b>${item.section_key}</b>: ${item.title}<br><span style="color:#555">${item.body || ''}</span></div>`).join('') || 'Нет опубликованного контента';
+  } catch (e) {
+    box.textContent = 'Не удалось загрузить опубликованный контент';
+  }
+}
 
-        // Load countries
-        async function loadCountries() {
-            try {
-                const response = await fetch(`${API_URL}/countries`);
-                const data = await response.json();
+async function loadCountries() {
+  const select = document.getElementById('countrySelect');
+  select.innerHTML = '<option>Загрузка...</option>';
+  const res = await fetch(`${API_URL}/countries`);
+  const data = await res.json();
+  select.innerHTML = (data.countries || []).map(c => `<option value="${c.country_code}">${c.flag_emoji || ''} ${c.country_name}</option>`).join('');
+}
 
-                if (data.countries && data.countries.length > 0) {
-                    countrySelect.innerHTML = '';
-                    data.countries.forEach(country => {
-                        const option = document.createElement('option');
-                        option.value = country.country_code;
-                        option.textContent = `${country.flag_emoji || ''} ${country.country_name}`;
-                        countrySelect.appendChild(option);
-                    });
-                }
-            } catch (error) {
-                console.error('Failed to load countries:', error);
-            }
-        }
+async function smartConnect() {
+  const result = document.getElementById('result');
+  if (!session?.token) {
+    result.textContent = 'Сначала войдите в аккаунт';
+    return;
+  }
 
-        // Smart Connect
-        async function smartConnect() {
-            const countryCode = countrySelect.value;
+  const countryCode = document.getElementById('countrySelect').value || 'auto';
+  const res = await fetch(`${API_URL}/connect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeader() },
+    body: JSON.stringify({ countryCode })
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    result.innerHTML = `<b>Ошибка:</b> ${data.error || 'failed'}`;
+    return;
+  }
 
-            connectButton.disabled = true;
-            connectButton.textContent = 'Connecting...';
-            result.style.display = 'none';
+  let html = `<div><b>Готово</b> (${data.deliveryFormat})</div>`;
+  if (data.deepLink) html += `<div><a class="btn" href="${data.deepLink}">Открыть приложение</a></div>`;
+  if (data.downloadUrl) html += `<div><a class="btn" href="${data.downloadUrl}">Скачать файл</a></div>`;
+  if (data.qrCode) html += `<div><img src="${data.qrCode}" width="220"/></div>`;
+  result.innerHTML = html;
+}
 
-            try {
-                const response = await fetch(`${API_URL}/connect`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: USER_ID,
-                        countryCode: countryCode,
-                    }),
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Connection failed');
-                }
-
-                handleConnectionResponse(data);
-
-            } catch (error) {
-                showError(error.message);
-            } finally {
-                connectButton.disabled = false;
-                connectButton.textContent = 'Connect to VPN';
-            }
-        }
-
-        function handleConnectionResponse(data) {
-            result.className = 'result success';
-            result.style.display = 'block';
-
-            let html = `<strong>✅ Connection Ready!</strong><br>`;
-            html += `<div class="info">Server: ${data.serverLocation || 'Unknown'}</div>`;
-            html += `<div class="info">Format: ${data.deliveryFormat}</div>`;
-
-            if (data.deepLink) {
-                html += `<br><a href="${data.deepLink}" class="download-link">Open in VPN App</a>`;
-                html += `<div class="info">Click to open in your VPN client</div>`;
-            }
-
-            if (data.downloadUrl) {
-                html += `<br><a href="${data.downloadUrl}" class="download-link" download>Download Config File</a>`;
-                html += `<div class="info">Download and import into your VPN client</div>`;
-            }
-
-            if (data.qrCode) {
-                html += `<div class="qr-code"><img src="${data.qrCode}" alt="QR Code"></div>`;
-                html += `<div class="info">Scan with your VPN app</div>`;
-            }
-
-            result.innerHTML = html;
-
-            statusIndicator.classList.add('connected');
-            statusIndicator.textContent = '✅';
-            statusText.textContent = 'Connected';
-        }
-
-        function showError(message) {
-            result.className = 'result error';
-            result.style.display = 'block';
-            result.innerHTML = `<strong>❌ Error:</strong> ${message}`;
-
-            statusIndicator.classList.remove('connected');
-            statusIndicator.textContent = '🔒';
-            statusText.textContent = 'Connection Failed';
-        }
-
-        // Event listeners
-        connectButton.addEventListener('click', smartConnect);
-
-        // Change country
-        countrySelect.addEventListener('change', async () => {
-            try {
-                const response = await fetch(`${API_URL}/change-country`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        userId: USER_ID,
-                        countryCode: countrySelect.value,
-                    }),
-                });
-
-                if (response.ok) {
-                    console.log('Country changed successfully');
-                }
-            } catch (error) {
-                console.error('Failed to change country:', error);
-            }
-        });
-
-        // Load countries on page load
-        loadCountries();
-    </script>
+document.getElementById('connectButton').addEventListener('click', smartConnect);
+renderAuth();
+loadCountries();
+loadLandingSections();
+</script>
 </body>
 </html>

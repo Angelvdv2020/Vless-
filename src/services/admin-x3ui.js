@@ -14,13 +14,13 @@ class AdminX3UIService {
 
       const inbound = inbounds[0];
 
-      await x3ui.createClient(clientEmail, countryCode);
+      const createdClient = await x3ui.createClient(inbound.id, clientEmail, clientUUID);
       await x3ui.updateClientTraffic(clientEmail, trafficGB);
 
       return {
         userId,
         clientEmail,
-        clientUUID,
+        clientUUID: createdClient.clientId,
         inboundId: inbound.id,
         inboundTag: inbound.tag,
         trafficGB,

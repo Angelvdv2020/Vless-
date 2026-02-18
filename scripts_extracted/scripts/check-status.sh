@@ -51,13 +51,13 @@ echo ""
 echo "🐳 DOCKER КОНТЕЙНЕРЫ:"
 echo "---"
 if command -v docker &> /dev/null; then
-    REMNAWAVE_STATUS=$(docker ps --filter "name=remnawave-panel" --format "{{.Status}}" 2>/dev/null)
-    DB_STATUS=$(docker ps --filter "name=remnawave-db" --format "{{.Status}}" 2>/dev/null)
+    X3UI_STATUS=$(docker ps --filter "name=x3ui-panel" --format "{{.Status}}" 2>/dev/null)
+    DB_STATUS=$(docker ps --filter "name=x3ui-db" --format "{{.Status}}" 2>/dev/null)
 
-    if [ -n "$REMNAWAVE_STATUS" ]; then
-        echo -e "${GREEN}✓${NC} RemnaWave Panel - $REMNAWAVE_STATUS"
+    if [ -n "$X3UI_STATUS" ]; then
+        echo -e "${GREEN}✓${NC} 3X-UI Panel - $X3UI_STATUS"
     else
-        echo -e "${RED}✗${NC} RemnaWave Panel - НЕ запущен"
+        echo -e "${RED}✗${NC} 3X-UI Panel - НЕ запущен"
     fi
 
     if [ -n "$DB_STATUS" ]; then
@@ -74,7 +74,7 @@ echo "🔌 ПРОВЕРКА ПОРТОВ:"
 echo "---"
 check_port 80    # HTTP
 check_port 443   # HTTPS
-check_port 3000  # RemnaWave Panel
+check_port 3000  # 3X-UI Panel
 check_port 3100  # Next.js Website
 echo ""
 
@@ -118,5 +118,5 @@ echo "=========================================="
 echo ""
 echo "Для просмотра логов используйте:"
 echo "  Next.js:    sudo journalctl -u vpn-website -f"
-echo "  RemnaWave:  cd ~/projects/remnawave && docker-compose logs -f"
+echo "  3X-UI:  cd ~/projects/x3ui && docker-compose logs -f"
 echo "  Nginx:      sudo tail -f /var/log/nginx/error.log"

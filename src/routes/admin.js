@@ -1,36 +1,62 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const pool = require('../database/db');
 const adminAuth = require('../middleware/adminAuth');
+const { hashPassword } = require('../services/password');
 
-router.post('/auth/login', (req, res) => {
+router.use(adminAuth);
+
+
+router.post('/users', async (req, res) => {
   try {
-    const { password } = req.body;
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-
-    if (!password || password !== adminPassword) {
-      return res.status(401).json({ error: 'Invalid admin credentials' });
+    const { email, password, isAdmin = false } = req.body;
+    if (!email || !password || password.length < 6) {
+      return res.status(400).json({ error: 'email and password (min 6 chars) are required' });
     }
 
-    if (!process.env.JWT_SECRET) {
-      return res.status(500).json({ error: 'JWT_SECRET not configured' });
+    const normalizedEmail = email.toLowerCase().trim();
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: 'User already exists' });
     }
 
-    const token = jwt.sign(
-      { role: 'admin' },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+    const result = await pool.query(
+      `INSERT INTO users (email, password_hash, is_admin)
+       VALUES ($1, $2, $3)
+       RETURNING id, email, is_admin, created_at`,
+      [normalizedEmail, hashPassword(password), Boolean(isAdmin)]
     );
 
-    res.json({ token, expiresIn: 86400 });
+    return res.status(201).json({ user: result.rows[0] });
   } catch (error) {
-    console.error('Admin login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    console.error('Admin create user error:', error);
+    return res.status(500).json({ error: 'Failed to create user' });
   }
 });
 
-router.use(adminAuth);
+router.post('/subscriptions', async (req, res) => {
+  try {
+    const { userId, planType = 'monthly', days = 30 } = req.body;
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + Number(days || 30));
+
+    const result = await pool.query(
+      `INSERT INTO subscriptions (user_id, plan_type, status, expires_at)
+       VALUES ($1, $2, 'active', $3)
+       RETURNING *`,
+      [userId, planType, expiresAt]
+    );
+
+    return res.status(201).json({ subscription: result.rows[0] });
+  } catch (error) {
+    console.error('Admin create subscription error:', error);
+    return res.status(500).json({ error: 'Failed to create subscription' });
+  }
+});
 
 router.get('/users', async (req, res) => {
   try {

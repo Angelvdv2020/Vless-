@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noryx VPN - Панель Пользователя</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:#0B0F14;color:#E5E7EB;min-height:100vh}
+    header{background:rgba(17,24,39,.8);border-bottom:1px solid rgba(45,212,191,.2);padding:18px 28px;display:flex;justify-content:space-between;align-items:center}
+    .container{max-width:1100px;margin:0 auto;padding:26px}
+    .card{background:rgba(17,24,39,.7);border:1px solid rgba(45,212,191,.2);border-radius:16px;padding:28px;margin-bottom:18px}
+    .status{font-size:16px;color:#9CA3AF;margin-bottom:15px;text-transform:uppercase}
+    .indicator{width:110px;height:110px;border-radius:50%;background:#1f2937;display:flex;align-items:center;justify-content:center;font-size:48px;margin:0 auto 20px}
+    .indicator.connected{background:linear-gradient(135deg,#2DD4BF,#14B8A6)}
+    .btn{padding:14px 38px;border:0;border-radius:12px;background:linear-gradient(135deg,#2DD4BF,#14B8A6);color:#fff;font-weight:700;cursor:pointer}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .stat .k{font-size:12px;color:#9CA3AF;text-transform:uppercase}
+    .stat .v{font-size:28px;font-weight:800;color:#2DD4BF}
+    .server-item{padding:14px;border:1px solid rgba(75,85,99,.4);border-radius:10px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;margin-bottom:10px}
+    .server-item.selected{border-color:#2DD4BF;background:rgba(45,212,191,.1)}
+    .muted{color:#9CA3AF}
+  </style>
+</head>
+<body>
+<header>
+  <div><div style="font-size:22px;font-weight:800;background:linear-gradient(135deg,#FFD700,#FFA500);-webkit-background-clip:text;-webkit-text-fill-color:transparent">NORYX</div><div class="muted" id="userEmail">user</div></div>
+  <div><a href="/" class="btn" style="text-decoration:none;padding:10px 14px;display:inline-block">Главная</a> <button class="btn" style="background:rgba(239,68,68,.8)" onclick="logout()">Выйти</button></div>
+</header>
+<div class="container">
+  <div class="card" style="text-align:center">
+    <div class="status" id="statusText">Не подключено</div>
+    <div class="indicator" id="indicator">🔒</div>
+    <button class="btn" id="connectBtn" onclick="toggleConnection()">Подключиться</button>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:12px">Статистика</h3>
+    <div class="stats">
+      <div class="stat"><div class="k">Скорость загрузки</div><div class="v" id="downloadSpeed">0 Мбит/с</div></div>
+      <div class="stat"><div class="k">Скорость выгрузки</div><div class="v" id="uploadSpeed">0 Мбит/с</div></div>
+      <div class="stat"><div class="k">Время сессии</div><div class="v" id="connectionTime">00:00:00</div></div>
+      <div class="stat"><div class="k">Активных подписок</div><div class="v" id="activeSubs">0</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-bottom:12px">Выбор сервера</h3>
+    <div id="servers">Загрузка...</div>
+  </div>
+</div>
+<script>
+const session = JSON.parse(localStorage.getItem('vpn_session') || 'null');
+if(!session?.token) location.href='/login.html';
+if(session?.user?.role==='admin') location.href='/admin.html';
+
+const H = { Authorization:'Bearer '+session.token, 'Content-Type':'application/json' };
+let isConnected=false, seconds=0, timer=null, selectedCountry='auto';
+
+function logout(){ localStorage.removeItem('vpn_session'); location.href='/login.html'; }
+function fmt(t){const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
+
+function startTimer(){ seconds=0; timer=setInterval(()=>{seconds++; connectionTime.textContent=fmt(seconds);},1000); }
+function stopTimer(){ if(timer) clearInterval(timer); timer=null; connectionTime.textContent='00:00:00'; }
+
+function pickCountry(code, el){ selectedCountry=code; document.querySelectorAll('.server-item').forEach(x=>x.classList.remove('selected')); el.classList.add('selected'); }
+
+async function toggleConnection(){
+  if(!isConnected){
+    const r = await fetch('/api/vpn/connect',{method:'POST',headers:H,body:JSON.stringify({countryCode:selectedCountry})});
+    const d = await r.json();
+    if(!r.ok){ alert(d.error || 'Ошибка подключения'); return; }
+    isConnected=true; statusText.textContent='Подключено'; indicator.classList.add('connected'); indicator.textContent='🛡️'; connectBtn.textContent='Отключиться';
+    startTimer();
+    if(d.deepLink){ window.location.href = d.deepLink; }
+    const tick = ()=>{ if(!isConnected) return; downloadSpeed.textContent=(Math.random()*80+20).toFixed(1)+' Мбит/с'; uploadSpeed.textContent=(Math.random()*40+10).toFixed(1)+' Мбит/с'; setTimeout(tick,2000);} ; tick();
+  } else {
+    isConnected=false; statusText.textContent='Не подключено'; indicator.classList.remove('connected'); indicator.textContent='🔒'; connectBtn.textContent='Подключиться';
+    stopTimer(); downloadSpeed.textContent='0 Мбит/с'; uploadSpeed.textContent='0 Мбит/с';
+  }
+}
+
+async function init(){
+  userEmail.textContent = session.user?.email || 'user';
+  try{
+    const p = await fetch('/api/auth/profile',{headers:{Authorization:'Bearer '+session.token}}).then(r=>r.json());
+    activeSubs.textContent = p.stats?.activeSubscriptions ?? 0;
+  } catch(e){}
+
+  try{
+    const data = await fetch('/api/vpn/countries').then(r=>r.json());
+    const list = data.countries || [];
+    servers.innerHTML = list.map((c,i)=>`<div class="server-item ${i===0?'selected':''}" onclick="pickCountry('${c.country_code}', this)"><div>${c.flag_emoji||''} <b>${c.country_name}</b></div><div class="muted">${c.country_code.toUpperCase()}</div></div>`).join('');
+    if(list[0]) selectedCountry = list[0].country_code;
+  }catch(e){ servers.innerHTML='<div class="muted">Не удалось загрузить страны</div>'; }
+}
+init();
+</script>
+</body>
+</html>

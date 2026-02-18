@@ -67,7 +67,7 @@
       try {
         const servers = await API.get('/api/servers');
         if (!servers || servers.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted);">Серверы загружаются из панели Remnawave</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text-muted);">Серверы загружаются из панели 3X-UI</td></tr>';
           return;
         }
         tbody.innerHTML = servers.map(s =>

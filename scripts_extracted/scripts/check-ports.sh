@@ -35,7 +35,7 @@ echo "Required Ports:"
 echo "==============="
 check_port 3000 "Web Application"
 check_port 5432 "PostgreSQL Database"
-check_port 8000 "Remnawave API"
+check_port 8000 "3X-UI API"
 
 echo ""
 echo "Production Ports:"
