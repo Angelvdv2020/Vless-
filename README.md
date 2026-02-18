@@ -443,6 +443,52 @@ sudo ls -la /etc/letsencrypt/live/example.com/
 
 Решение: используйте вариант как в этом README (через `expires` + `Cache-Control`) либо отдельно настраивайте `proxy_cache_path` в `nginx.conf`.
 
+
+### Ошибка certbot: `ModuleNotFoundError: No module named _cffi_backend` / `pyo3_runtime.PanicException`
+Причина: сломан Python-стек системного certbot (обычно конфликт `python3-cryptography`/`pyOpenSSL`/`cffi`).
+
+Это **не ошибка Nginx**. Ваш `nginx -t` уже успешно проходит.
+
+Рекомендуемое исправление (самый надежный путь) — перейти на certbot через snap:
+
+```bash
+# 1) Удалить apt-версии certbot
+sudo apt-get remove -y certbot python3-certbot-nginx
+sudo apt-get autoremove -y
+
+# 2) Переустановить python-библиотеки (если остались поломанные зависимости)
+sudo apt-get install -y --reinstall python3-cryptography python3-openssl python3-cffi-backend
+
+# 3) Установить certbot через snap
+sudo apt-get install -y snapd
+sudo systemctl enable --now snapd
+sudo snap install core
+sudo snap refresh core
+sudo snap install --classic certbot
+sudo ln -sf /snap/bin/certbot /usr/bin/certbot
+
+# 4) Проверить, что запускается
+certbot --version
+```
+
+После этого снова выпустите сертификат:
+
+```bash
+sudo certbot certonly --nginx -d servervpn.store -d www.servervpn.store
+```
+
+Если всё ещё ошибка, проверьте базовые условия выпуска сертификата:
+
+```bash
+# DNS должен указывать на ваш сервер
+getent hosts servervpn.store
+getent hosts www.servervpn.store
+
+# Порт 80 должен быть доступен снаружи
+sudo ufw status
+sudo ss -tulpn | rg ':80|:443'
+```
+
 ### Ошибка: certbot не проходит challenge
 Причины:
 - DNS домена не указывает на сервер,
