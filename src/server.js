@@ -8,6 +8,8 @@ require('dotenv').config();
 const vpnRoutes = require('./routes/vpn');
 const adminRoutes = require('./routes/admin');
 const adminX3UIRoutes = require('./routes/admin-x3ui');
+const authRoutes = require('./routes/auth');
+const siteBuilderRoutes = require('./routes/site-builder');
 const { initX3UISession, startSessionRefresh } = require('./middleware/x3ui-session');
 
 const app = express();
@@ -65,9 +67,11 @@ app.get('/health', (req, res) => {
 app.use(initX3UISession);
 
 // Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/vpn', vpnRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/x3ui', adminX3UIRoutes);
+app.use('/api/admin/site-builder', siteBuilderRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -95,6 +99,9 @@ app.listen(PORT, '0.0.0.0', () => {
 
   console.log('\n📋 Available Endpoints:');
   console.log('   GET  /health');
+  console.log('   POST /api/auth/register');
+  console.log('   POST /api/auth/login');
+  console.log('   GET  /api/auth/profile');
   console.log('   POST /api/vpn/connect');
   console.log('   GET  /api/vpn/countries');
   console.log('   POST /api/vpn/change-country');
@@ -119,6 +126,10 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('   GET    /api/admin/x3ui/inbounds-info');
   console.log('   POST   /api/admin/x3ui/sync-database');
   console.log('   POST   /api/admin/x3ui/cleanup-expired');
+  console.log('   GET    /api/admin/site-builder/content');
+  console.log('   PUT    /api/admin/site-builder/content/:key');
+  console.log('   POST   /api/admin/site-builder/ai/text');
+  console.log('   POST   /api/admin/site-builder/ai/image');
 });
 
 module.exports = app;

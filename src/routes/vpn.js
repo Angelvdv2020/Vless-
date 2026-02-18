@@ -5,12 +5,10 @@ const x3ui = require('../services/x3ui');
 const { detectPlatform, getDeliveryFormat, getDeepLinkScheme } = require('../services/platformDetector');
 const { generateDownloadToken, validateDownloadToken } = require('../services/tokenService');
 const { generateQRCode } = require('../services/qrService');
+const { authenticateToken } = require('../middleware/auth');
 
 function getUserId(req) {
-  if (req.user && req.user.id) {
-    return req.user.id;
-  }
-  return req.body.userId;
+  return req.user && req.user.id;
 }
 
 function getDeepLink(protocol, config) {
@@ -27,14 +25,14 @@ function getDeepLink(protocol, config) {
   return `${scheme}${encodedConfig}`;
 }
 
-router.post('/connect', async (req, res) => {
+router.post('/connect', authenticateToken, async (req, res) => {
   try {
     const userId = getUserId(req);
     const { countryCode = 'auto' } = req.body;
     const userAgent = req.headers['user-agent'] || '';
 
     if (!userId) {
-      return res.status(400).json({ error: 'User not authenticated. Provide JWT token or userId in body.' });
+      return res.status(400).json({ error: 'User not authenticated' });
     }
 
     const platform = detectPlatform(userAgent);
@@ -75,7 +73,8 @@ router.post('/connect', async (req, res) => {
       const inbound = inbounds[0];
       inboundId = inbound.id;
 
-      await x3ui.createClient(clientEmail, countryCode);
+      const createdClient = await x3ui.createClient(inboundId, clientEmail, clientUUID);
+      clientUUID = createdClient.clientId;
 
       await pool.query(
         `UPDATE subscriptions
@@ -167,13 +166,13 @@ router.get('/countries', async (req, res) => {
   }
 });
 
-router.post('/change-country', async (req, res) => {
+router.post('/change-country', authenticateToken, async (req, res) => {
   try {
     const userId = getUserId(req);
     const { countryCode } = req.body;
 
     if (!userId || !countryCode) {
-      return res.status(400).json({ error: 'User not authenticated and countryCode is required' });
+      return res.status(400).json({ error: 'User not authenticated or countryCode is required' });
     }
 
     const configQuery = await pool.query(
@@ -221,6 +220,7 @@ router.get('/download/:token', async (req, res) => {
 
     const configLink = getDeepLink('vless', {
       email: payload.subscriptionId,
+      userId: payload.userId,
       format: 'file',
     });
 
@@ -233,7 +233,7 @@ router.get('/download/:token', async (req, res) => {
   }
 });
 
-router.get('/stats', async (req, res) => {
+router.get('/stats', authenticateToken, async (req, res) => {
   try {
     const userId = getUserId(req);
     if (!userId) {

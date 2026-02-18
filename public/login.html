@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Noryx VPN — Вход</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0F172A; min-height: 100vh; display: flex; overflow: hidden; }
+        .brand-zone { flex: 1; position: relative; background: #0F172A; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 60px 72px; }
+        .wave-canvas { position: absolute; inset: 0; z-index: 0; }
+        .wave-canvas svg { width: 100%; height: 100%; }
+        .brand-content { position: relative; z-index: 2; }
+        .logo-block { display: flex; align-items: center; gap: 20px; margin-bottom: 48px; }
+        .logo-mark { width: 64px; height: 64px; flex-shrink: 0; }
+        .logo-wordmark { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 800; letter-spacing: 6px; background: linear-gradient(135deg, #D97706 0%, #F59E0B 30%, #FDE68A 55%, #F59E0B 80%, #B45309 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; filter: drop-shadow(0 2px 12px rgba(245, 158, 11, 0.35)); line-height: 1; }
+        .logo-sub { font-size: 11px; font-weight: 500; letter-spacing: 5px; color: #94A3B8; text-transform: uppercase; padding-left: 2px; }
+        .tagline { font-size: 32px; font-weight: 700; color: #F8FAFC; line-height: 1.25; margin-bottom: 20px; max-width: 420px; }
+        .tagline span { background: linear-gradient(90deg, #F59E0B, #FBBF24); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .tagline-desc { font-size: 15px; color: #64748B; line-height: 1.7; max-width: 380px; }
+        .features { display: flex; flex-direction: column; gap: 16px; margin-top: 52px; }
+        .feature-item { display: flex; align-items: center; gap: 14px; }
+        .feature-dot { width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B, #FBBF24); flex-shrink: 0; box-shadow: 0 0 12px rgba(245, 158, 11, 0.5); }
+        .feature-text { font-size: 14px; color: #94A3B8; font-weight: 400; }
+        .bottom-label { position: absolute; bottom: 40px; left: 72px; font-size: 12px; color: #334155; letter-spacing: 1px; }
+        .form-zone { width: 480px; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; padding: 60px 52px; position: relative; background: linear-gradient(160deg, #1E293B 0%, #0F172A 100%); border-left: 1px solid #1E293B; }
+        .form-inner { position: relative; z-index: 1; }
+        .form-title { font-size: 28px; font-weight: 700; color: #F8FAFC; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .form-subtitle { font-size: 14px; color: #64748B; margin-bottom: 40px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; font-size: 12px; font-weight: 600; color: #94A3B8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 14px 18px; background: #0F172A; border: 1px solid #334155; border-radius: 10px; color: #F8FAFC; font-size: 15px; font-family: 'Inter', sans-serif; outline: none; transition: all 0.25s ease; }
+        .form-input::placeholder { color: #475569; }
+        .form-input:focus { border-color: #F59E0B; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12); }
+        .form-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+        .remember { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .remember input[type=checkbox] { width: 16px; height: 16px; accent-color: #F59E0B; }
+        .remember span { font-size: 13px; color: #64748B; }
+        .forgot-link { font-size: 13px; color: #F59E0B; text-decoration: none; }
+        .btn-primary { width: 100%; padding: 15px; background: #F8FAFC; border: none; border-radius: 10px; color: #0F172A; font-size: 15px; font-weight: 700; font-family: 'Inter', sans-serif; cursor: pointer; transition: all 0.25s ease; letter-spacing: 0.3px; margin-bottom: 14px; }
+        .btn-primary:hover { background: #FFFFFF; box-shadow: 0 4px 24px rgba(248, 250, 252, 0.2); transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+        .helper-link { display:block; text-align:center; margin-top:10px; color:#94A3B8; text-decoration:none; font-size:13px; }
+        .error-msg { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #FCA5A5; margin-bottom: 20px; display: none; }
+        .form-footer { margin-top: 36px; text-align: center; font-size: 12px; color: #334155; }
+        @media (max-width: 900px) { .brand-zone { display: none; } .form-zone { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="brand-zone">
+        <div class="wave-canvas">
+            <svg viewBox="0 0 700 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1E3A5F" stop-opacity="0.6"/><stop offset="100%" stop-color="#0F172A" stop-opacity="0"/></linearGradient>
+                    <linearGradient id="g2" x1="100%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1E293B" stop-opacity="0.7"/><stop offset="100%" stop-color="#0F172A" stop-opacity="0"/></linearGradient>
+                </defs>
+                <path d="M-100,180 C80,80 320,320 540,180 S820,80 900,180 L900,0 L-100,0 Z" fill="url(#g1)"/>
+                <path d="M-100,420 C60,320 220,520 420,400 S660,300 900,420 L900,620 L-100,620 Z" fill="url(#g2)"/>
+            </svg>
+        </div>
+        <div class="brand-content">
+            <div class="logo-block">
+                <svg class="logo-mark" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><polyline points="10,56 10,10 36,52" stroke="#F59E0B" stroke-width="6" fill="none"/><polyline points="28,12 54,12 54,56" stroke="#CBD5E1" stroke-width="6" fill="none"/></svg>
+                <div><div class="logo-wordmark">NORYX</div><div class="logo-sub">Premium Security</div></div>
+            </div>
+            <div class="tagline">Контроль.<br><span>Статус.</span><br>Защита.</div>
+            <div class="tagline-desc">Корпоративная VPN-платформа нового поколения для тех, кто ценит надёжность и конфиденциальность.</div>
+            <div class="features">
+                <div class="feature-item"><div class="feature-dot"></div><div class="feature-text">Военное шифрование AES-256</div></div>
+                <div class="feature-item"><div class="feature-dot"></div><div class="feature-text">Нулевые логи. Zero-knowledge архитектура</div></div>
+                <div class="feature-item"><div class="feature-dot"></div><div class="feature-text">Серверы в 40+ странах мира</div></div>
+            </div>
+        </div>
+        <div class="bottom-label">© 2026 NORYX. ALL RIGHTS RESERVED.</div>
+    </div>
+
+    <div class="form-zone">
+        <div class="form-inner">
+            <div class="form-title">Login</div>
+            <div class="form-subtitle">Войдите в систему</div>
+            <div class="error-msg" id="errorMsg"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input class="form-input" type="email" id="loginInput" placeholder="admin@noryx.io" autocomplete="username" required/>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input class="form-input" type="password" id="passInput" placeholder="••••••••••••" autocomplete="current-password" required/>
+                </div>
+                <div class="form-row">
+                    <label class="remember"><input type="checkbox"/><span>Запомнить меня</span></label>
+                    <a href="#" class="forgot-link">Забыли пароль?</a>
+                </div>
+                <button type="submit" class="btn-primary" id="loginBtn">Login</button>
+            </form>
+            <a href="/register.html" class="helper-link">Нет аккаунта? Зарегистрироваться</a>
+            <div class="form-footer">Защищено TLS 1.3 · NORYX Security</div>
+        </div>
+    </div>
+
+    <script>
+      const form = document.getElementById('loginForm');
+      const btn = document.getElementById('loginBtn');
+      const err = document.getElementById('errorMsg');
+
+      function showError(message) {
+        err.textContent = message;
+        err.style.display = 'block';
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        err.style.display = 'none';
+
+        const email = document.getElementById('loginInput').value.trim();
+        const password = document.getElementById('passInput').value;
+
+        if (!email || !password) {
+          showError('Заполните все поля');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Вход...';
+
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const data = await response.json();
+
+          if (!response.ok || !data.session) {
+            throw new Error(data.error || 'Ошибка входа');
+          }
+
+          localStorage.setItem('vpn_session', JSON.stringify(data.session));
+
+          if (data.session.user?.role === 'admin') {
+            window.location.href = '/admin.html';
+          } else {
+            window.location.href = '/cabinet.html';
+          }
+        } catch (e2) {
+          showError(e2.message || 'Неверный логин или пароль');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Login';
+        }
+      });
+    </script>
+</body>
+</html>

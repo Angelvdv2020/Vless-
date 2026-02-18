@@ -34,8 +34,8 @@ async function loginToPanel() {
       sessionCookie = cookies.map((c) => c.split(';')[0]).join('; ');
     }
   } catch (err) {
-    console.error('RemnaWave login failed:', err);
-    throw new Error('RemnaWave authentication failed');
+    console.error('3X-UI login failed:', err);
+    throw new Error('3X-UI authentication failed');
   }
 }
 
@@ -63,12 +63,12 @@ async function apiRequest(method: string, path: string, data: any = null) {
 
     return res.json();
   } catch (err) {
-    console.error(`RemnaWave API error [${method} ${path}]:`, err);
+    console.error(`3X-UI API error [${method} ${path}]:`, err);
     throw err;
   }
 }
 
-const remnawave = {
+const x3ui = {
   async getNodes() {
     return apiRequest('GET', '/api/nodes');
   },
@@ -130,4 +130,4 @@ const remnawave = {
   },
 };
 
-export default remnawave;
+export default x3ui;

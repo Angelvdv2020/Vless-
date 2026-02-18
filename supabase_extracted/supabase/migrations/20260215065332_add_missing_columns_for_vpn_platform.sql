@@ -4,7 +4,7 @@
   1. Modified Tables
     - `profiles` - add `trial_used` boolean for trial period tracking
     - `tariffs` - add `is_trial` boolean for trial tariff identification
-    - `subscriptions` - add `remnawave_username` for Remnawave API lookups
+    - `subscriptions` - add `x3ui_username` for 3X-UI API lookups
     - `news` - add `published_at` for publish date ordering
 
   2. New Tables
@@ -40,9 +40,9 @@ DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
-    WHERE table_name = 'subscriptions' AND column_name = 'remnawave_username'
+    WHERE table_name = 'subscriptions' AND column_name = 'x3ui_username'
   ) THEN
-    ALTER TABLE subscriptions ADD COLUMN remnawave_username text DEFAULT '';
+    ALTER TABLE subscriptions ADD COLUMN x3ui_username text DEFAULT '';
   END IF;
 END $$;
 

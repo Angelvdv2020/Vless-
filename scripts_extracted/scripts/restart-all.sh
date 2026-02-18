@@ -13,14 +13,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# 1. Перезапуск RemnaWave (Docker)
-echo -e "${YELLOW}→${NC} Перезапуск RemnaWave Panel..."
-if [ -d "$HOME/projects/remnawave" ]; then
-    cd $HOME/projects/remnawave
+# 1. Перезапуск 3X-UI (Docker)
+echo -e "${YELLOW}→${NC} Перезапуск 3X-UI Panel..."
+if [ -d "$HOME/projects/x3ui" ]; then
+    cd $HOME/projects/x3ui
     docker-compose restart
-    echo -e "${GREEN}✓${NC} RemnaWave перезапущен"
+    echo -e "${GREEN}✓${NC} 3X-UI перезапущен"
 else
-    echo "⚠ Директория RemnaWave не найдена"
+    echo "⚠ Директория 3X-UI не найдена"
 fi
 echo ""
 
@@ -57,10 +57,10 @@ else
     echo -e "❌ Nginx - НЕ работает"
 fi
 
-if docker ps --filter "name=remnawave-panel" --format "{{.Status}}" | grep -q "Up"; then
-    echo -e "${GREEN}✓${NC} RemnaWave Panel - работает"
+if docker ps --filter "name=x3ui-panel" --format "{{.Status}}" | grep -q "Up"; then
+    echo -e "${GREEN}✓${NC} 3X-UI Panel - работает"
 else
-    echo -e "❌ RemnaWave Panel - НЕ работает"
+    echo -e "❌ 3X-UI Panel - НЕ работает"
 fi
 
 echo ""
@@ -73,5 +73,5 @@ echo "  bash scripts/check-status.sh"
 echo ""
 echo "Для просмотра логов:"
 echo "  Next.js:    sudo journalctl -u vpn-website -f"
-echo "  RemnaWave:  cd ~/projects/remnawave && docker-compose logs -f"
+echo "  3X-UI:  cd ~/projects/x3ui && docker-compose logs -f"
 echo "  Nginx:      sudo tail -f /var/log/nginx/error.log"

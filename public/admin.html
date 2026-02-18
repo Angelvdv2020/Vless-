@@ -1,664 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Noryx VPN - Admin Panel</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noryx VPN - Панель Администратора</title>
   <style>
-    :root {
-      --primary: #2c3e50;
-      --success: #27ae60;
-      --danger: #e74c3c;
-      --warning: #f39c12;
-      --info: #3498db;
-    }
-
-    body {
-      background: linear-gradient(135deg, var(--primary) 0%, #34495e 100%);
-      color: #333;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .navbar {
-      background: linear-gradient(90deg, var(--primary) 0%, #1a252f 100%);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    .navbar-brand {
-      font-weight: bold;
-      font-size: 1.5rem;
-    }
-
-    .sidebar {
-      background: white;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      border-radius: 8px;
-    }
-
-    .sidebar a {
-      display: block;
-      padding: 12px 15px;
-      margin: 5px 0;
-      color: #333;
-      text-decoration: none;
-      border-radius: 5px;
-      transition: all 0.3s;
-    }
-
-    .sidebar a:hover,
-    .sidebar a.active {
-      background: var(--primary);
-      color: white;
-    }
-
-    .content {
-      background: white;
-      padding: 25px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .content h2 {
-      color: var(--primary);
-      margin-bottom: 20px;
-      border-bottom: 2px solid var(--primary);
-      padding-bottom: 10px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, var(--info) 0%, #2980b9 100%);
-      color: white;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      margin-bottom: 15px;
-    }
-
-    .stat-card.success {
-      background: linear-gradient(135deg, var(--success) 0%, #1e8449 100%);
-    }
-
-    .stat-card.danger {
-      background: linear-gradient(135deg, var(--danger) 0%, #c0392b 100%);
-    }
-
-    .stat-card.warning {
-      background: linear-gradient(135deg, var(--warning) 0%, #d68910 100%);
-    }
-
-    .stat-card h3 {
-      font-size: 2.5rem;
-      margin: 10px 0 5px;
-    }
-
-    .stat-card p {
-      font-size: 0.95rem;
-      margin: 0;
-    }
-
-    .table {
-      background: white;
-    }
-
-    .table thead {
-      background: var(--primary);
-      color: white;
-    }
-
-    .table tbody tr:hover {
-      background-color: #f5f5f5;
-    }
-
-    .btn-sm {
-      padding: 4px 8px;
-      font-size: 0.85rem;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 5px;
-      flex-wrap: wrap;
-    }
-
-    .modal-header {
-      background: var(--primary);
-      color: white;
-    }
-
-    .form-label {
-      color: var(--primary);
-      font-weight: 500;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .loader {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .login-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    .login-card {
-      background: white;
-      padding: 40px;
-      border-radius: 10px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-      width: 100%;
-      max-width: 400px;
-    }
-
-    .login-card h1 {
-      color: var(--primary);
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    .alert {
-      border-radius: 5px;
-      margin-bottom: 20px;
-    }
-
-    .badge {
-      padding: 6px 10px;
-    }
-
-    .nav-tabs {
-      border-bottom: 2px solid var(--primary);
-    }
-
-    .nav-tabs .nav-link.active {
-      color: var(--primary);
-      border-bottom: 2px solid var(--primary);
-      background: none;
-    }
-
-    .nav-tabs .nav-link {
-      color: #666;
-    }
-
-    .nav-tabs .nav-link:hover {
-      color: var(--primary);
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; background:#0B0F14; color:#E5E7EB; min-height:100vh; }
+    body::before { content:''; position:fixed; inset:-50%; background:radial-gradient(circle at 20% 50%, rgba(45,212,191,.12), transparent 50%),radial-gradient(circle at 80% 80%, rgba(45,212,191,.08), transparent 50%); z-index:0; }
+    header { position:relative; z-index:2; background:rgba(17,24,39,.8); border-bottom:1px solid rgba(45,212,191,.2); padding:20px 32px; display:flex; justify-content:space-between; align-items:center; }
+    .logo-text { font-size:24px; font-weight:800; background:linear-gradient(135deg,#FFD700,#FFA500); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .btn { padding:10px 16px; border-radius:8px; border:1px solid rgba(239,68,68,.3); background:rgba(239,68,68,.2); color:#FCA5A5; cursor:pointer; text-decoration:none; }
+    .container { position:relative; z-index:1; max-width:1300px; margin:0 auto; padding:28px; }
+    h1 { margin-bottom:22px; }
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:24px; }
+    .card { background:rgba(17,24,39,.7); border:1px solid rgba(45,212,191,.2); border-radius:14px; padding:20px; }
+    .title { font-size:12px; color:#9CA3AF; text-transform:uppercase; }
+    .value { font-size:32px; font-weight:800; color:#2DD4BF; margin-top:8px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:12px; border-bottom:1px solid rgba(75,85,99,.3); text-align:left; }
+    th { color:#9CA3AF; font-size:12px; text-transform:uppercase; }
+    .section { margin-bottom:20px; }
+    .muted { color:#9CA3AF; font-size:13px; }
   </style>
 </head>
 <body>
-
-<div id="loginPage" class="login-container">
-  <div class="login-card">
-    <h1><i class="bi bi-shield-lock"></i> Admin Panel</h1>
-    <div id="loginError" class="alert alert-danger hidden"></div>
-    <form id="loginForm">
-      <div class="mb-3">
-        <label for="adminPassword" class="form-label">Admin Password</label>
-        <input type="password" class="form-control" id="adminPassword" required autofocus>
-      </div>
-      <button type="submit" class="btn btn-primary w-100">
-        <i class="bi bi-lock"></i> Login
-      </button>
-    </form>
-  </div>
-</div>
-
-<div id="adminPage" class="hidden">
-  <nav class="navbar navbar-dark mb-4">
-    <div class="container-fluid">
-      <span class="navbar-brand">
-        <i class="bi bi-speedometer2"></i> Noryx VPN Admin Panel
-      </span>
-      <div>
-        <span class="text-white me-3">Logged in</span>
-        <button class="btn btn-outline-light btn-sm" id="logoutBtn">
-          <i class="bi bi-box-arrow-right"></i> Logout
-        </button>
-      </div>
+  <header>
+    <div>
+      <div class="logo-text">NORYX</div>
+      <div class="muted">ADMIN</div>
     </div>
-  </nav>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <a class="btn" href="/builder.html" style="border-color:rgba(45,212,191,.35);background:rgba(45,212,191,.15);color:#5eead4;">Конструктор</a>
+      <button class="btn" onclick="logout()">Выйти</button>
+    </div>
+  </header>
 
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md-2">
-        <div class="sidebar">
-          <a href="#" class="sidebar-link active" data-section="dashboard">
-            <i class="bi bi-speedometer2"></i> Dashboard
-          </a>
-          <a href="#" class="sidebar-link" data-section="users">
-            <i class="bi bi-people"></i> Users
-          </a>
-          <a href="#" class="sidebar-link" data-section="subscriptions">
-            <i class="bi bi-card-checklist"></i> Subscriptions
-          </a>
-          <a href="#" class="sidebar-link" data-section="countries">
-            <i class="bi bi-globe"></i> Countries
-          </a>
-          <a href="#" class="sidebar-link" data-section="logs">
-            <i class="bi bi-clock-history"></i> Connection Logs
-          </a>
-        </div>
-      </div>
+  <div class="container">
+    <h1>Панель администратора</h1>
 
-      <div class="col-md-10">
-        <div id="dashboard" class="content">
-          <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
-          <div class="row" id="statsContainer">
-            <div class="col-md-3">
-              <div class="stat-card"><h3 id="totalUsers">0</h3><p>Total Users</p></div>
-            </div>
-            <div class="col-md-3">
-              <div class="stat-card success"><h3 id="activeSubscriptions">0</h3><p>Active Subscriptions</p></div>
-            </div>
-            <div class="col-md-3">
-              <div class="stat-card warning"><h3 id="connections24h">0</h3><p>Connections (24h)</p></div>
-            </div>
-            <div class="col-md-3">
-              <div class="stat-card info"><h3 id="countries">0</h3><p>Active Countries</p></div>
-            </div>
-          </div>
+    <div class="stats-grid">
+      <div class="card"><div class="title">Всего пользователей</div><div class="value" id="totalUsers">-</div></div>
+      <div class="card"><div class="title">Активные подписки</div><div class="value" id="activeSubs">-</div></div>
+      <div class="card"><div class="title">Подключения (24ч)</div><div class="value" id="connections24h">-</div></div>
+      <div class="card"><div class="title">Стран в топе</div><div class="value" id="topCountriesCount">-</div></div>
+    </div>
 
-          <div class="row mt-4">
-            <div class="col-md-6">
-              <h4><i class="bi bi-globe"></i> Top Countries (7 days)</h4>
-              <table class="table table-sm">
-                <thead>
-                  <tr><th>Country</th><th>Connections</th></tr>
-                </thead>
-                <tbody id="topCountriesBody"></tbody>
-              </table>
-            </div>
-            <div class="col-md-6">
-              <h4><i class="bi bi-phone"></i> Platforms (7 days)</h4>
-              <table class="table table-sm">
-                <thead>
-                  <tr><th>Platform</th><th>Connections</th></tr>
-                </thead>
-                <tbody id="platformsBody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+    <div class="card section">
+      <h3 style="margin-bottom:12px;">Пользователи</h3>
+      <table>
+        <thead><tr><th>ID</th><th>Email</th><th>Всего подписок</th><th>Активных</th></tr></thead>
+        <tbody id="usersTbody"><tr><td colspan="4" class="muted">Загрузка...</td></tr></tbody>
+      </table>
+    </div>
 
-        <div id="users" class="content hidden">
-          <h2><i class="bi bi-people"></i> Users</h2>
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Email</th>
-                <th>Created</th>
-                <th>Active Subs</th>
-                <th>Total Subs</th>
-              </tr>
-            </thead>
-            <tbody id="usersTable"></tbody>
-          </table>
-        </div>
-
-        <div id="subscriptions" class="content hidden">
-          <h2><i class="bi bi-card-checklist"></i> Subscriptions</h2>
-          <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#grantTrialModal">
-            <i class="bi bi-plus-circle"></i> Grant Trial
-          </button>
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Email</th>
-                <th>Plan</th>
-                <th>Status</th>
-                <th>Expires</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="subscriptionsTable"></tbody>
-          </table>
-        </div>
-
-        <div id="countries" class="content hidden">
-          <h2><i class="bi bi-globe"></i> Countries</h2>
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Country</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="countriesTable"></tbody>
-          </table>
-        </div>
-
-        <div id="logs" class="content hidden">
-          <h2><i class="bi bi-clock-history"></i> Connection Logs</h2>
-          <table class="table table-hover table-sm">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Email</th>
-                <th>Platform</th>
-                <th>Country</th>
-                <th>Type</th>
-              </tr>
-            </thead>
-            <tbody id="logsTable"></tbody>
-          </table>
-        </div>
-      </div>
+    <div class="card section">
+      <h3 style="margin-bottom:12px;">3X-UI Inbounds</h3>
+      <table>
+        <thead><tr><th>ID</th><th>Tag</th><th>Протокол</th><th>Порт</th></tr></thead>
+        <tbody id="inboundsTbody"><tr><td colspan="4" class="muted">Загрузка...</td></tr></tbody>
+      </table>
     </div>
   </div>
-</div>
 
-<div class="modal fade" id="grantTrialModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-gift"></i> Grant Trial</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="grantTrialForm">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="trialUserId" class="form-label">User ID</label>
-            <input type="number" class="form-control" id="trialUserId" required>
-          </div>
-          <div class="mb-3">
-            <label for="trialDays" class="form-label">Days</label>
-            <input type="number" class="form-control" id="trialDays" value="7" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success"><i class="bi bi-check"></i> Grant</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="renewSubModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title"><i class="bi bi-arrow-repeat"></i> Renew Subscription</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form id="renewSubForm">
-        <div class="modal-body">
-          <input type="hidden" id="renewSubId">
-          <div class="mb-3">
-            <label for="renewDays" class="form-label">Days to Add</label>
-            <input type="number" class="form-control" id="renewDays" value="30" required>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success"><i class="bi bi-check"></i> Renew</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-  const API_BASE = '/api/admin';
-  let adminToken = localStorage.getItem('adminToken');
+const session = JSON.parse(localStorage.getItem('vpn_session') || 'null');
+if (!session?.token || session?.user?.role !== 'admin') location.href = '/login.html';
 
-  if (adminToken) {
-    showAdminPage();
-  } else {
-    showLoginPage();
+const H = { Authorization: 'Bearer ' + session.token, 'Content-Type': 'application/json' };
+function logout(){ localStorage.removeItem('vpn_session'); location.href='/login.html'; }
+
+async function api(path){
+  const r = await fetch(path, { headers:H });
+  const d = await r.json();
+  if(!r.ok) throw new Error(d.error || 'api error');
+  return d;
+}
+
+async function init(){
+  try {
+    const [stats, users, inbounds] = await Promise.all([
+      api('/api/admin/stats'),
+      api('/api/admin/users'),
+      api('/api/admin/x3ui/inbounds-info')
+    ]);
+
+    totalUsers.textContent = stats.totalUsers ?? 0;
+    activeSubs.textContent = stats.activeSubscriptions ?? 0;
+    connections24h.textContent = stats.connectionsLast24h ?? 0;
+    topCountriesCount.textContent = (stats.topCountries || []).length;
+
+    usersTbody.innerHTML = (users || []).slice(0,10).map(u => `<tr><td>${u.id}</td><td>${u.email}</td><td>${u.total_subscriptions}</td><td>${u.active_subscriptions}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Нет данных</td></tr>';
+
+    inboundsTbody.innerHTML = ((inbounds.data || inbounds) || []).map(i => `<tr><td>${i.id}</td><td>${i.tag}</td><td>${i.protocol}</td><td>${i.port}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">Нет данных</td></tr>';
+  } catch(e) {
+    alert('Ошибка загрузки админ-данных: ' + e.message);
   }
-
-  function showLoginPage() {
-    $('#loginPage').removeClass('hidden');
-    $('#adminPage').addClass('hidden');
-  }
-
-  function showAdminPage() {
-    $('#loginPage').addClass('hidden');
-    $('#adminPage').removeClass('hidden');
-    loadDashboard();
-  }
-
-  $('#loginForm').on('submit', function(e) {
-    e.preventDefault();
-    const password = $('#adminPassword').val();
-    const $btn = $(this).find('button[type="submit"]');
-    const originalText = $btn.html();
-    $btn.prop('disabled', true).html('<span class="loader"></span>');
-
-    $.ajax({
-      method: 'POST',
-      url: '/api/admin/auth/login',
-      data: JSON.stringify({ password }),
-      contentType: 'application/json'
-    }).done(function(data) {
-      adminToken = data.token;
-      localStorage.setItem('adminToken', adminToken);
-      $('#adminPassword').val('');
-      $('#loginError').addClass('hidden');
-      showAdminPage();
-    }).fail(function(xhr) {
-      const errorMsg = xhr.responseJSON?.error || 'Login failed. Check your password.';
-      $('#loginError').text(errorMsg).removeClass('hidden');
-    }).always(function() {
-      $btn.prop('disabled', false).html(originalText);
-    });
-  });
-
-  $('#logoutBtn').on('click', function() {
-    localStorage.removeItem('adminToken');
-    adminToken = null;
-    $('#adminPassword').val('');
-    showLoginPage();
-  });
-
-  $('.sidebar-link').on('click', function(e) {
-    e.preventDefault();
-    const section = $(this).data('section');
-    $('.sidebar-link').removeClass('active');
-    $(this).addClass('active');
-    $('.content').addClass('hidden');
-    $('#' + section).removeClass('hidden');
-
-    if (section === 'users') loadUsers();
-    if (section === 'subscriptions') loadSubscriptions();
-    if (section === 'countries') loadCountries();
-    if (section === 'logs') loadLogs();
-  });
-
-  function apiCall(method, endpoint, data = null) {
-    return $.ajax({
-      method: method,
-      url: API_BASE + endpoint,
-      data: data ? JSON.stringify(data) : undefined,
-      contentType: 'application/json',
-      headers: {
-        'Authorization': 'Bearer ' + adminToken
-      },
-      statusCode: {
-        401: function() {
-          localStorage.removeItem('adminToken');
-          adminToken = null;
-          showLoginPage();
-        }
-      }
-    });
-  }
-
-  function loadDashboard() {
-    apiCall('GET', '/stats').done(function(data) {
-      $('#totalUsers').text(data.totalUsers);
-      $('#activeSubscriptions').text(data.activeSubscriptions);
-      $('#connections24h').text(data.connectionsLast24h);
-      $('#countries').text(data.topCountries.length);
-
-      let html = '';
-      data.topCountries.forEach(c => {
-        html += `<tr><td>${c.country_code}</td><td>${c.count}</td></tr>`;
-      });
-      $('#topCountriesBody').html(html);
-
-      html = '';
-      data.platforms.forEach(p => {
-        html += `<tr><td>${p.platform}</td><td>${p.count}</td></tr>`;
-      });
-      $('#platformsBody').html(html);
-    });
-  }
-
-  function loadUsers() {
-    apiCall('GET', '/users').done(function(data) {
-      let html = '';
-      data.forEach(u => {
-        html += `<tr>
-          <td>${u.id}</td>
-          <td>${u.email}</td>
-          <td>${formatDate(u.created_at)}</td>
-          <td><span class="badge bg-success">${u.active_subscriptions || 0}</span></td>
-          <td>${u.total_subscriptions || 0}</td>
-        </tr>`;
-      });
-      $('#usersTable').html(html);
-    });
-  }
-
-  function loadSubscriptions() {
-    apiCall('GET', '/subscriptions').done(function(data) {
-      let html = '';
-      data.forEach(s => {
-        const status = s.status === 'active' ? '<span class="badge bg-success">Active</span>' :
-                      s.status === 'expired' ? '<span class="badge bg-danger">Expired</span>' :
-                      '<span class="badge bg-secondary">Cancelled</span>';
-        html += `<tr>
-          <td>${s.id}</td>
-          <td>${s.email}</td>
-          <td>${s.plan_type}</td>
-          <td>${status}</td>
-          <td>${formatDate(s.expires_at)}</td>
-          <td>
-            <div class="action-buttons">
-              <button class="btn btn-sm btn-info" onclick="showRenewModal(${s.id})">
-                <i class="bi bi-arrow-repeat"></i> Renew
-              </button>
-              <button class="btn btn-sm btn-danger" onclick="cancelSubscription(${s.id})">
-                <i class="bi bi-x-circle"></i> Cancel
-              </button>
-            </div>
-          </td>
-        </tr>`;
-      });
-      $('#subscriptionsTable').html(html);
-    });
-  }
-
-  function loadCountries() {
-    apiCall('GET', '/countries').done(function(data) {
-      let html = '';
-      data.forEach(c => {
-        const status = c.is_available ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>';
-        html += `<tr>
-          <td>${c.flag_emoji} ${c.country_code}</td>
-          <td>${c.country_name}</td>
-          <td>${status}</td>
-          <td>${c.priority}</td>
-          <td>
-            <button class="btn btn-sm btn-warning" onclick="toggleCountry('${c.country_code}')">
-              <i class="bi bi-toggle2-${c.is_available ? 'on' : 'off'}"></i> Toggle
-            </button>
-          </td>
-        </tr>`;
-      });
-      $('#countriesTable').html(html);
-    });
-  }
-
-  function loadLogs() {
-    apiCall('GET', '/connection-logs').done(function(data) {
-      let html = '';
-      data.forEach(l => {
-        html += `<tr>
-          <td>${formatDate(l.connected_at)}</td>
-          <td>${l.email}</td>
-          <td><span class="badge bg-info">${l.platform}</span></td>
-          <td>${l.country_code}</td>
-          <td>${l.connection_type}</td>
-        </tr>`;
-      });
-      $('#logsTable').html(html);
-    });
-  }
-
-  function showRenewModal(subId) {
-    $('#renewSubId').val(subId);
-    new bootstrap.Modal(document.getElementById('renewSubModal')).show();
-  }
-
-  function formatDate(dateStr) {
-    return new Date(dateStr).toLocaleDateString();
-  }
-
-  $('#renewSubForm').on('submit', function(e) {
-    e.preventDefault();
-    const id = $('#renewSubId').val();
-    const days = $('#renewDays').val();
-    apiCall('PATCH', `/subscriptions/${id}/renew`, { days: parseInt(days) })
-      .done(function() {
-        bootstrap.Modal.getInstance(document.getElementById('renewSubModal')).hide();
-        loadSubscriptions();
-      });
-  });
-
-  function cancelSubscription(id) {
-    if (confirm('Cancel this subscription?')) {
-      apiCall('PATCH', `/subscriptions/${id}/cancel`)
-        .done(function() {
-          loadSubscriptions();
-        });
-    }
-  }
-
-  function toggleCountry(code) {
-    apiCall('PATCH', `/countries/${code}/toggle`)
-      .done(function() {
-        loadCountries();
-      });
-  }
-
-  $('#grantTrialForm').on('submit', function(e) {
-    e.preventDefault();
-    const userId = $('#trialUserId').val();
-    const days = $('#trialDays').val();
-    apiCall('POST', '/subscriptions/grant-trial', { userId: parseInt(userId), days: parseInt(days) })
-      .done(function() {
-        bootstrap.Modal.getInstance(document.getElementById('grantTrialModal')).hide();
-        $('#trialUserId').val('');
-        loadSubscriptions();
-      });
-  });
+}
+init();
 </script>
-
 </body>
 </html>

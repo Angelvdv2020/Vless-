@@ -28,9 +28,11 @@ async function initDatabase() {
     console.log('📊 Tables created:');
     console.log('   - users');
     console.log('   - subscriptions');
+    console.log('   - vpn_keys');
     console.log('   - vpn_configs');
     console.log('   - connection_logs');
     console.log('   - available_countries');
+    console.log('   - site_content');
 
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);
