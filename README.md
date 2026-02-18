@@ -32,6 +32,7 @@ X3UI_PASSWORD=CHANGE_ME
 NODE_ENV=production
 ALLOWED_ORIGINS=https://your-domain.com
 AUTH_RATE_LIMIT_MAX=10
+TRUST_PROXY=1
 AI_TEXT_ENABLED=false
 AI_REQUEST_TIMEOUT_MS=30000
 ```
@@ -51,6 +52,19 @@ GIGACHAT_MODEL=GigaChat:latest
 Если `AI_TEXT_ENABLED=true` и нет `GIGACHAT_AUTH_KEY`:
 - `/health` вернет `503`,
 - AI endpoint вернет graceful fallback, а не падение всего проекта.
+
+
+### 1.4 Если запуск через Nginx/Cloudflare/балансировщик
+
+Чтобы `express-rate-limit` корректно работал с заголовком `X-Forwarded-For`, добавьте в `.env`:
+
+```env
+TRUST_PROXY=1
+```
+
+Если прокси-цепочка сложная, можно указать:
+- `TRUST_PROXY=true` (доверять всем прокси),
+- или конкретное число хопов (`1`, `2`, ...).
 
 ---
 

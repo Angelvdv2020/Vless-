@@ -26,6 +26,14 @@ try {
 }
 
 // Security middleware
+
+const trustProxy = process.env.TRUST_PROXY;
+if (typeof trustProxy !== 'undefined' && trustProxy !== '') {
+  app.set('trust proxy', trustProxy === 'true' ? true : Number(trustProxy));
+} else if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 app.use(helmet({
   contentSecurityPolicy: false, // Allow inline scripts for demo
 }));
@@ -120,6 +128,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('🚀 Noryx Premium VPN Server Started');
   console.log(`📡 Listening on http://0.0.0.0:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🧭 trust proxy: ${String(app.get('trust proxy'))}`);
 
   if (process.env.X3UI_API_URL) {
     startSessionRefresh(3600000);
