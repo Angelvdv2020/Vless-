@@ -268,3 +268,191 @@ cd /opt/noryx-vpn && npm run init-db
 # Проверка health
 curl -s http://127.0.0.1:3000/health
 ```
+
+---
+
+## 10. ЧАСТЬ 5: КОНФИГУРАЦИЯ NGINX (исправленная, пошагово)
+
+Ниже рабочая последовательность **без догадок**.
+
+### 10.1 Установите certbot (если ещё не установлен)
+
+```bash
+sudo apt-get update
+sudo apt-get install -y certbot python3-certbot-nginx
+```
+
+### 10.2 Создайте временный HTTP-конфиг (для первичного выпуска SSL)
+
+```bash
+sudo nano /etc/nginx/sites-available/noryx
+```
+
+Вставьте (замените `example.com` на ваш домен):
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name example.com www.example.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+### 10.3 Включите конфиг и проверьте синтаксис
+
+```bash
+sudo ln -sf /etc/nginx/sites-available/noryx /etc/nginx/sites-enabled/noryx
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 10.4 Получите SSL сертификат
+
+```bash
+sudo certbot certonly --nginx -d example.com -d www.example.com
+```
+
+Проверьте, что сертификаты есть:
+
+```bash
+sudo ls -la /etc/letsencrypt/live/example.com/
+```
+
+Должны быть минимум:
+- `fullchain.pem`
+- `privkey.pem`
+
+### 10.5 Переключите конфиг на HTTPS + редирект с HTTP
+
+```bash
+sudo nano /etc/nginx/sites-available/noryx
+```
+
+Вставьте:
+
+```nginx
+# HTTP -> HTTPS
+server {
+    listen 80;
+    listen [::]:80;
+    server_name example.com www.example.com;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name example.com www.example.com;
+
+    ssl_certificate /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    client_max_body_size 20M;
+    proxy_read_timeout 300s;
+    proxy_connect_timeout 300s;
+
+    access_log /var/log/nginx/noryx_access.log;
+    error_log /var/log/nginx/noryx_error.log;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Статика: кэш через заголовки (без proxy_cache_path)
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        expires 30d;
+        add_header Cache-Control "public, max-age=2592000";
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+    }
+}
+```
+
+### 10.6 Примените изменения
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Ожидаемо:
+- `nginx: ... syntax is ok`
+- `nginx: ... test is successful`
+
+### 10.7 Автообновление сертификата
+
+Проверка dry-run:
+
+```bash
+sudo certbot renew --dry-run
+```
+
+---
+
+## 11. Частые ошибки в Nginx/SSL и как исправить
+
+### Ошибка: `cannot load certificate`
+Причина: неверный путь или сертификат не выпущен.
+
+Проверьте:
+
+```bash
+sudo ls -la /etc/letsencrypt/live/example.com/
+```
+
+### Ошибка: `nginx: [emerg] unknown directive "proxy_cache_valid"`
+Причина: использована директива кэша без глобального `proxy_cache_path`.
+
+Решение: используйте вариант как в этом README (через `expires` + `Cache-Control`) либо отдельно настраивайте `proxy_cache_path` в `nginx.conf`.
+
+### Ошибка: certbot не проходит challenge
+Причины:
+- DNS домена не указывает на сервер,
+- порт 80 закрыт,
+- конфликтующий Nginx-конфиг.
+
+Проверьте:
+
+```bash
+dig +short example.com
+sudo ufw status
+sudo nginx -t
+```
