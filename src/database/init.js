@@ -33,7 +33,8 @@ async function initDatabase() {
     console.log('   - connection_logs');
     console.log('   - available_countries');
     console.log('   - site_content');
-
+    console.log('   - site_content_versions');
+    console.log('   - ai_generation_logs');
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);
     throw error;

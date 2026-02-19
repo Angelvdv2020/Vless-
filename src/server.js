@@ -10,17 +10,43 @@ const adminRoutes = require('./routes/admin');
 const adminX3UIRoutes = require('./routes/admin-x3ui');
 const authRoutes = require('./routes/auth');
 const siteBuilderRoutes = require('./routes/site-builder');
+
+const siteContentRoutes = require('./routes/site-content');
+const { validateEnv } = require('./config/env');
+const { getHealthReport } = require('./services/health');
+=======
 const { initX3UISession, startSessionRefresh } = require('./middleware/x3ui-session');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+try {
+  validateEnv();
+} catch (error) {
+  console.error('❌ Environment configuration error:', error.message);
+  process.exit(1);
+}
+
 // Security middleware
+
+const trustProxy = process.env.TRUST_PROXY;
+if (typeof trustProxy !== 'undefined' && trustProxy !== '') {
+  app.set('trust proxy', trustProxy === 'true' ? true : Number(trustProxy));
+} else if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 app.use(helmet({
   contentSecurityPolicy: false, // Allow inline scripts for demo
 }));
 
 // CORS configuration
+
+if (process.env.NODE_ENV === 'production' && !process.env.ALLOWED_ORIGINS) {
+  console.error('❌ ALLOWED_ORIGINS is required in production');
+  process.exit(1);
+}
+
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
   .split(',')
   .map(o => o.trim());
@@ -58,9 +84,21 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX || 10),
+  message: 'Too many auth attempts. Please try again later.',
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
 // Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'Noryx Premium VPN' });
+app.get('/health', async (req, res) => {
+  const report = await getHealthReport();
+  if (!report.ok) {
+    return res.status(503).json({ status: 'degraded', service: 'Noryx Premium VPN', ...report });
+  }
+  return res.status(200).json({ status: 'ok', service: 'Noryx Premium VPN', ...report });
 });
 
 // Initialize 3X-UI session
@@ -72,6 +110,8 @@ app.use('/api/vpn', vpnRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/x3ui', adminX3UIRoutes);
 app.use('/api/admin/site-builder', siteBuilderRoutes);
+app.use('/api/site-content', siteContentRoutes);
+=======
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -91,6 +131,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('🚀 Noryx Premium VPN Server Started');
   console.log(`📡 Listening on http://0.0.0.0:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🧭 trust proxy: ${String(app.get('trust proxy'))}`);
 
   if (process.env.X3UI_API_URL) {
     startSessionRefresh(3600000);

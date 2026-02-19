@@ -19,6 +19,11 @@
     <div id="authActions"></div>
   </div>
 
+
+  <div class="card">
+    <h3>Landing Content (published from Builder)</h3>
+    <div id="landingSections">Загрузка...</div>
+  </div>
   <div class="card">
     <h3>Smart Connect</h3>
     <select id="countrySelect"></select>
@@ -51,6 +56,18 @@ function renderAuth() {
 
 function logout(){ localStorage.removeItem('vpn_session'); location.reload(); }
 
+
+async function loadLandingSections() {
+  const box = document.getElementById('landingSections');
+  try {
+    const res = await fetch('/api/site-content/published');
+    const data = await res.json();
+    const items = data.items || [];
+    box.innerHTML = items.map(item => `<div style="margin-bottom:10px"><b>${item.section_key}</b>: ${item.title}<br><span style="color:#555">${item.body || ''}</span></div>`).join('') || 'Нет опубликованного контента';
+  } catch (e) {
+    box.textContent = 'Не удалось загрузить опубликованный контент';
+  }
+}
 async function loadCountries() {
   const select = document.getElementById('countrySelect');
   select.innerHTML = '<option>Загрузка...</option>';
@@ -88,6 +105,7 @@ async function smartConnect() {
 document.getElementById('connectButton').addEventListener('click', smartConnect);
 renderAuth();
 loadCountries();
+loadLandingSections();
 </script>
 </body>
 </html>

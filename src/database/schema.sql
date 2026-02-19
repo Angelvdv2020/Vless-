@@ -80,6 +80,46 @@ CREATE TABLE IF NOT EXISTS site_content (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+ALTER TABLE site_content
+    ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'draft',
+    ADD COLUMN IF NOT EXISTS current_version INTEGER DEFAULT 1,
+    ADD COLUMN IF NOT EXISTS published_version INTEGER;
+
+CREATE TABLE IF NOT EXISTS site_content_versions (
+    id SERIAL PRIMARY KEY,
+    section_key VARCHAR(100) NOT NULL,
+    version_no INTEGER NOT NULL,
+    title VARCHAR(255) DEFAULT '',
+    body TEXT DEFAULT '',
+    image_url TEXT DEFAULT '',
+    status VARCHAR(20) DEFAULT 'draft',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(section_key, version_no)
+);
+
+CREATE TABLE IF NOT EXISTS ai_generation_logs (
+    id SERIAL PRIMARY KEY,
+    provider VARCHAR(50) NOT NULL,
+    section_key VARCHAR(100),
+    prompt TEXT,
+    status VARCHAR(20) NOT NULL,
+    error_message TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS site_content (
+    id SERIAL PRIMARY KEY,
+    section_key VARCHAR(100) UNIQUE NOT NULL,
+    title VARCHAR(255) DEFAULT '',
+    body TEXT DEFAULT '',
+    image_url TEXT DEFAULT '',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 INSERT INTO available_countries (country_code, country_name, flag_emoji, priority) VALUES
     ('auto', 'Auto (Best)', '🌍', 100),
     ('us', 'United States', '🇺🇸', 90),
@@ -91,6 +131,14 @@ INSERT INTO available_countries (country_code, country_name, flag_emoji, priorit
     ('ca', 'Canada', '🇨🇦', 30)
 ON CONFLICT (country_code) DO NOTHING;
 
+INSERT INTO site_content (section_key, title, body, image_url, status, current_version, published_version)
+VALUES
+  ('hero', 'Secure VPN for everyone', 'Fast, private and reliable connection.', '', 'published', 1, 1),
+  ('features', 'Features', 'AES-256, no logs, global servers.', '', 'published', 1, 1),
+  ('pricing', 'Pricing', 'Simple plans for teams and individuals.', '', 'published', 1, 1),
+  ('faq', 'FAQ', 'Answers to common VPN questions.', '', 'published', 1, 1),
+  ('footer', 'Contacts', 'support@noryx.example', '', 'published', 1, 1)
+ON CONFLICT (section_key) DO NOTHING;
 CREATE INDEX IF NOT EXISTS idx_users_is_admin ON users(is_admin);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
@@ -100,3 +148,5 @@ CREATE INDEX IF NOT EXISTS idx_vpn_configs_user_id ON vpn_configs(user_id);
 CREATE INDEX IF NOT EXISTS idx_vpn_configs_x3ui_client_ref ON vpn_configs(x3ui_client_ref);
 CREATE INDEX IF NOT EXISTS idx_connection_logs_user_id ON connection_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_site_content_section_key ON site_content(section_key);
+CREATE INDEX IF NOT EXISTS idx_site_content_versions_section_key ON site_content_versions(section_key);
+CREATE INDEX IF NOT EXISTS idx_ai_generation_logs_created_at ON ai_generation_logs(created_at);
