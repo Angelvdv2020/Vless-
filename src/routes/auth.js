@@ -1,4 +1,6 @@
 const express = require('express');
+
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const pool = require('../database/db');
 const { authenticateToken } = require('../middleware/auth');
@@ -11,6 +13,20 @@ const { hashPassword, verifyPassword } = require('../services/password');
 
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is required for auth routes');
+}
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+function hashPassword(password, salt = null) {
+  const safeSalt = salt || crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, safeSalt, 100000, 64, 'sha512').toString('hex');
+  return `${safeSalt}:${hash}`;
+}
+
+function verifyPassword(password, storedHash) {
+  const [salt, original] = (storedHash || '').split(':');
+  if (!salt || !original) return false;
+  const check = hashPassword(password, salt).split(':')[1];
+  return crypto.timingSafeEqual(Buffer.from(check, 'hex'), Buffer.from(original, 'hex'));
 }
 function signSession(user) {
   const role = user.is_admin ? 'admin' : 'user';

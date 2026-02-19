@@ -24,7 +24,6 @@
     <h3>Landing Content (published from Builder)</h3>
     <div id="landingSections">Загрузка...</div>
   </div>
-
   <div class="card">
     <h3>Smart Connect</h3>
     <select id="countrySelect"></select>
@@ -69,7 +68,6 @@ async function loadLandingSections() {
     box.textContent = 'Не удалось загрузить опубликованный контент';
   }
 }
-
 async function loadCountries() {
   const select = document.getElementById('countrySelect');
   select.innerHTML = '<option>Загрузка...</option>';

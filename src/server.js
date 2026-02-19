@@ -10,9 +10,11 @@ const adminRoutes = require('./routes/admin');
 const adminX3UIRoutes = require('./routes/admin-x3ui');
 const authRoutes = require('./routes/auth');
 const siteBuilderRoutes = require('./routes/site-builder');
+
 const siteContentRoutes = require('./routes/site-content');
 const { validateEnv } = require('./config/env');
 const { getHealthReport } = require('./services/health');
+=======
 const { initX3UISession, startSessionRefresh } = require('./middleware/x3ui-session');
 
 const app = express();
@@ -109,6 +111,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/admin/x3ui', adminX3UIRoutes);
 app.use('/api/admin/site-builder', siteBuilderRoutes);
 app.use('/api/site-content', siteContentRoutes);
+=======
 
 // Error handling middleware
 app.use((err, req, res, next) => {
